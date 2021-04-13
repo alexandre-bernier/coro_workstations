@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<robot name="ur5_2f85" xmlns:xacro="http://ros.org/wiki/xacro">
+	<!-- WORLD -->
+	<link name="world"/>
+
+	<!-- TABLE -->
+	<xacro:include filename="$(find coro_descriptions)/urdf/common/coro_3arms_table.urdf.xacro"/>
+	<xacro:coro_3arms_table prefix=""/>
+	<joint name="table_to_world" type="fixed">
+		<parent link="world"/>
+		<child link="table_base"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+	
+	<!-- ROBOT -->
+	<!--<xacro:arg name="kinematics_config" default="$(find ur5_2f85_moveit_config)/../descriptions/ur5/ur5_calibration.yaml"/>
+	<xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro" kinematics_file="${load_yaml('$(arg kinematics_config)')}"/>-->
+	<xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro"/>
+	<xacro:ur5_robot prefix="" joint_limited="true"
+    		shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
+    		shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
+    		elbow_joint_lower_limit="${-pi}" elbow_joint_upper_limit="${pi}"
+    		wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
+    		wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
+    		wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
+    		transmission_hw_interface="hardware_interface/PositionJointInterface"/>
+	<joint name="robot_to_table" type="fixed">
+		<parent link="middle_robot_mount"/>
+		<child link="base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+
+	<!-- FORCE-TORQUE SENSOR -->
+	<xacro:include filename="$(find robotiq_ft_sensor)/urdf/robotiq_ft300.urdf.xacro"/>
+	<xacro:robotiq_ft300 prefix="" parent="tool0">
+		<origin xyz="0 0 -0.0045" rpy="0 0 -1.5708"/>
+	</xacro:robotiq_ft300>
+	<gazebo reference="ft300_sensor">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="ft300_mounting_plate">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	
+	<!-- GRIPPER COUPLING -->
+	<xacro:include filename="$(find coro_descriptions)/urdf/common/2f_coupling.urdf.xacro"/>
+	<xacro:coupling_robotiq_2f prefix="" parent="ft300_sensor">
+		<origin xyz="0 0 -0.0045" rpy="0 0 0"/>
+    	</xacro:coupling_robotiq_2f>
+   	
+	<!-- GRIPPER -->
+	<xacro:include filename="$(find robotiq_85_description)/urdf/robotiq_85_gripper.urdf.xacro"/>
+	<xacro:robotiq_85_gripper prefix="" parent="coupling_gripper_fix">
+		<origin xyz="0 0 0" rpy="0 1.5708 0"/>
+    	</xacro:robotiq_85_gripper>
+    	
+    	<link name="tcp"/>
+    	<joint name="tcp_to_gripper" type="fixed">
+    		<parent link="gripper_base_link"/>
+    		<child link="tcp"/>
+    		<origin xyz="0 0 0.15" rpy="0 0 0"/>
+	</joint>
+
+	<!-- GAZEBO -->
+	<gazebo>
+    		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      			<robotNamespace>/</robotNamespace>
+      			<robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+    		</plugin>
+  	</gazebo>
+</robot>

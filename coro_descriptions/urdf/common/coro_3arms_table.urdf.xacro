@@ -1,0 +1,213 @@
+<?xml version="1.0" ?>
+<robot name="coro_3arms_table" xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:macro name="coro_3arms_table" params="prefix">
+	
+		<material name="light-grey">
+    			<color rgba="0.4 0.4 0.4 1.0"/>
+		</material>
+	
+	        <!-- Base -->
+		<link name="${prefix}table_base">
+			<visual>
+				<origin xyz="0 0 ${0.159/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<box size="0.82 1.22 0.159"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 ${0.159/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<box size="0.82 1.22 0.159"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="10"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}table_base">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        
+	        <!-- Workspace column -->
+		<link name="${prefix}workspace_column">
+			<visual>
+				<origin xyz="0 0 ${0.6045/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<cylinder length="0.6045" radius="0.045"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 ${0.6045/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<cylinder length="0.6045" radius="0.045"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="2"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}workspace_column">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        <joint name="workspace_column_to_base" type="fixed">
+	        	<parent link="${prefix}table_base"/>
+	        	<child link="${prefix}workspace_column"/>
+	        	<origin xyz="0 0.245 0.159" rpy="0 0 0"/>
+        	</joint>
+        	
+        	<!-- Workspace table -->
+		<link name="${prefix}workspace_table">
+			<visual>
+				<origin xyz="0 0 ${0.0065/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<box size="0.8 0.6 0.0065"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 ${0.0065/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<box size="0.8 0.6 0.0065"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="3"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}workspace_table">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        <joint name="workspace_table_to_column" type="fixed">
+	        	<parent link="${prefix}workspace_column"/>
+	        	<child link="${prefix}workspace_table"/>
+	        	<origin xyz="0 0 0.6045" rpy="0 0 0"/>
+        	</joint>
+        	
+        	<!-- Columns' link beam -->
+		<link name="${prefix}columns_link_beam">
+			<visual>
+				<origin xyz="0 ${-0.496/2} ${-0.0381/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<box size="0.0381 0.496 0.0381"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 ${-0.496/2} ${-0.0381/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<box size="0.0381 0.496 0.0381"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="1"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}columns_link_beam">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        <joint name="columns_link_beam_joint" type="fixed">
+	        	<parent link="${prefix}workspace_column"/>
+	        	<child link="${prefix}columns_link_beam"/>
+	        	<origin xyz="0 0 0.6045" rpy="0 0 0"/>
+        	</joint>
+        	
+        	<!-- Robot column -->
+		<link name="${prefix}robot_column">
+			<visual>
+				<origin xyz="0 0 ${1.427/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<cylinder length="1.427" radius="0.045"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 ${1.427/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<cylinder length="1.427" radius="0.045"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="5"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}robot_column">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        <joint name="robot_column_to_base" type="fixed">
+	        	<parent link="${prefix}table_base"/>
+	        	<child link="${prefix}robot_column"/>
+	        	<origin xyz="0 -0.251 0.159" rpy="0 0 0"/>
+        	</joint>
+        	
+        	<!-- Middle robot fixation plate -->
+		<link name="${prefix}middle_robot_fix">
+			<visual>
+				<origin xyz="0 0 ${0.01/2}" rpy="0 0 0"/>
+				<geometry>
+	                    		<cylinder length="0.01" radius="0.07"/>
+	                	</geometry>
+	                	<material name="light-grey"/>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 ${0.01/2}" rpy="0 0 0"/>
+	                	<geometry>
+	                    		<cylinder length="0.01" radius="0.07"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="1"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}middle_robot_fix">
+    			<material>Gazebo/Grey</material>
+  		</gazebo>
+	        <joint name="middle_robot_fix_to_column" type="fixed">
+	        	<parent link="${prefix}robot_column"/>
+	        	<child link="${prefix}middle_robot_fix"/>
+	        	<origin xyz="0 0 1.427" rpy="0 0 0"/>
+        	</joint>
+	        
+	        
+	        <!-- Robot mounting points -->
+	        <!-- Left mount -->
+        	<!-- TO DO: Might be easier if we import the table as STL -->
+	        
+	        <!-- Middle mount -->
+	        <link name="${prefix}middle_robot_mount"/>
+	        <joint name="middle_robot_mount" type="fixed">
+	        	<parent link="${prefix}middle_robot_fix"/>
+	        	<child link="${prefix}middle_robot_mount"/>
+	        	<origin xyz="0 0 0.01" rpy="0 0 0"/>
+        	</joint>
+        	
+	        <!-- Right mount -->
+        	<!-- TO DO: Might be easier if we import the table as STL -->
+		
+	</xacro:macro>
+</robot>

@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<robot name="2f_coupling" xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:macro name="coupling_robotiq_2f" params="parent prefix *origin">
+	
+		<!-- Mount the coupling to the robot side -->
+	        <joint name="${prefix}coupling_robot_fix" type="fixed">
+			<xacro:insert_block name="origin" />
+	            	<parent link="${parent}" />
+            		<child link="${prefix}2f_coupling" />
+	        </joint>
+	        
+	        <!-- Coupling -->
+		<link name="${prefix}2f_coupling">
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0" />
+				<geometry>
+	                    		<cylinder length="0.017" radius="0.0375"/>
+	                	</geometry>
+	                	<material name="Robotiq-Black">
+	                    		<color rgba="0.2 0.2 0.2 1.0"/>
+	                	</material>
+			</visual>
+	            	<collision>
+	                	<origin xyz="0 0 0" rpy="0 0 0" />
+	                	<geometry>
+	                    		<cylinder length="0.017" radius="0.0375"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="0.150"/>
+	                	<inertia ixx="0.000056" ixy="0"        ixz="0"
+	                	         iyx="0"        iyy="0.000056" iyz="0"
+	                	         izx="0"        izy="0"        izz="0.000105"/>
+	            	</inertial>
+	        </link>
+	        <gazebo reference="${prefix}2f_coupling">
+    			<material>Gazebo/Black</material>
+  		</gazebo>
+
+	        
+	        <!-- Mount the gripper to the coupling -->
+	        <link name="${prefix}coupling_gripper_fix"/>
+	        <joint name="coupling_to_fts" type="fixed">
+	        	<parent link="${prefix}2f_coupling"/>
+	        	<child link="${prefix}coupling_gripper_fix"/>
+	        	<origin xyz="0 0 -0.0054" rpy="0 0 0"/>
+		</joint>
+		
+	</xacro:macro>
+</robot>

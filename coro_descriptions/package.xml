@@ -1,0 +1,18 @@
+<package>
+
+  <name>coro_descriptions</name>
+  <version>1.0.0</version>
+  <description>URDF models for Coro Workstations</description>
+  <author email="alexandre.bernier.3@ens.etsmtl.ca">Alexandre Bernier</author>
+  <maintainer email="alexandre.bernier.3@ens.etsmtl.ca">Alexandre Bernier</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>xacro</run_depend>
+
+  <export>
+  </export>
+  
+</package>
