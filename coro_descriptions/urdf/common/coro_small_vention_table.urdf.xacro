@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<robot name="coro_small_vention_table" xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:macro name="coro_small_vention_table" params="prefix">
+
+	        <!-- Table -->
+		<link name="${prefix}table">
+			<visual>
+				<origin xyz="0 0 0.001" rpy="0 0 0"/> <!-- The Z-plane of the table is slightly too high. -->
+				<geometry>
+	                    		<mesh filename="package://coro_descriptions/meshes/small_vention_table.dae"/>
+	                	</geometry>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 0.001" rpy="0 0 0"/> <!-- The Z-plane of the table is slightly too high. -->
+				<geometry>
+	                    		<mesh filename="package://coro_descriptions/meshes/small_vention_table.dae"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="20"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        
+	        <!-- Robot mount -->
+	        <link name="${prefix}robot_mount"/>
+	        <joint name="robot_mount" type="fixed">
+	        	<parent link="${prefix}table"/>
+	        	<child link="${prefix}robot_mount"/>
+	        	<origin xyz="-0.3375 0 0.99234" rpy="0 0 0"/>  <!-- The Z-plane of the table is slightly too high. The true Z-origin is 0.099134. -->
+        	</joint>
+		
+	</xacro:macro>
+</robot>

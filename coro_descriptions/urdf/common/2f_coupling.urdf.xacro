@@ -41,7 +41,7 @@
 	        
 	        <!-- Mount the gripper to the coupling -->
 	        <link name="${prefix}coupling_gripper_fix"/>
-	        <joint name="coupling_to_fts" type="fixed">
+	        <joint name="coupling_to_gripper" type="fixed">
 	        	<parent link="${prefix}2f_coupling"/>
 	        	<child link="${prefix}coupling_gripper_fix"/>
 	        	<origin xyz="0 0 -0.0054" rpy="0 0 0"/>

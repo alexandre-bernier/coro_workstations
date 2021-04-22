@@ -8,53 +8,31 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 	<!-- By default, we are not in debug mode -->
 	<arg name="debug" default="false"/>
 	
-  	<!-- If you do not provide the ip address of the robot, the workstation will start in simulation by default -->
-  	<arg name="sim" default="true"/>
-  	
-  	<!-- Other options -->
-  	<arg name="urdf_path" default="$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro"/>
-  	
-  	<!-- **************************** -->
-  	<!-- If simulation, launch Gazebo -->
-  	<!-- **************************** -->
-	<!-- Gazebo specific options -->
-	<arg name="gazebo_gui" default="true"/>
-	<arg name="paused" default="false"/>
+	<!-- IP address of the robot -->
+	<arg name="robot_ip" default="no_ip"/>
 	
-	<!-- Startup simulated world -->
-	<include file="$(find gazebo_ros)/launch/empty_world.launch">
-    		<arg name="world_name" default="worlds/empty.world"/>
-    		<arg name="paused" value="$(arg paused)"/>
-    		<arg name="gui" value="$(arg gazebo_gui)"/>
-  	</include>
-
-	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  	<include file="$(find ur5_workstation_moveit_config)/launch/planning_context.launch">
-    		<arg name="load_robot_description" value="false"/>
-  	</include>
+  	<!-- If you do not provide the ip address of the robot, the workstation will start in simulation by default -->
+  	<arg name="sim" default="true" if="$(eval (robot_ip=='no_ip'))"/>
+  	<arg name="sim" value="false" unless="$(eval (robot_ip=='no_ip'))"/>
   	
-  	<!-- Push robot_description to factory and spawn robot in gazebo -->
-  	<node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model ur5_workstation" respawn="false" output="screen"/>
+  	<!-- ******************************************* -->
+  	<!-- If simulation, launch simulated workstation -->
+  	<!-- ******************************************* -->
+	<include if="$(arg sim)" file="$(find coro_workstations)/launch/sim_workstation.launch">
+		<arg name="robot" value="ur5"/>
+	</include>
   	
-  	<include file="$(find ur_gazebo)/launch/controller_utils.launch"/>
+	<!-- *************************** -->
+  	<!-- Otherwise, connect to robot -->
+  	<!-- *************************** -->
+  	<include unless="$(arg sim)" file="$(find coro_workstations)/launch/hardware_workstation.launch">
+  		<!--<arg name="debug" value="$(arg debug)"/>-->
+		<arg name="robot_ip" value="$(arg robot_ip)"/>
+	</include>
   	
-  	<!-- Load controllers to the parameters server -->
- 	<rosparam file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
-  	<rosparam file="$(find robotiq_85_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
- 	
-  	<!-- Spawn the controllers -->
-  	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller gripper"/>
-
-	<!-- We do not have a robot connected, so publish fake joint states -->
-  	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    		<rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
-    		<rosparam param="source_list">[/joint_states]</rosparam>
-  	</node>
-
-  	
-  	<!-- If needed, broadcast static tf for robot root -->
-  	
-  	
+  	<!-- **************************** -->
+  	<!-- Then, launch Moveit and Rviz -->
+  	<!-- **************************** -->
   	<!-- Run the main MoveIt executable --> 
   	<include file="$(find ur5_workstation_moveit_config)/launch/move_group.launch">
     		<arg name="allow_trajectory_execution" value="true"/>

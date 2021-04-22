@@ -1,0 +1,47 @@
+<!--
+Brief:	Launch file to start a simulated workstation.
+Author: Alexandre Bernier
+Date:	2021-04-19
+Email:	alexandre.bernier.3@ens.etsmtl.ca
+-->
+<launch>
+	<!-- Robot selection -->
+	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
+
+	<!-- Gazebo specific options -->
+	<arg name="gazebo_gui" default="true"/>
+	<arg name="paused" default="false"/>
+	
+	<!-- Startup simulated world -->
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+    		<arg name="world_name" default="worlds/empty.world"/>
+    		<arg name="paused" value="$(arg paused)"/>
+    		<arg name="gui" value="$(arg gazebo_gui)"/>
+  	</include>
+
+	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_workstation_moveit_config)/launch/planning_context.launch">
+    		<arg name="load_robot_description" value="false"/>
+  	</include>
+  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/planning_context.launch">
+    		<arg name="load_robot_description" value="false"/>
+  	</include>
+  	
+  	<!-- Push robot_description to factory and spawn robot in gazebo -->
+  	<node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot)_workstation" respawn="false" output="screen"/>
+	
+  	<include if="$(eval robot=='ur5')" file="$(find ur_gazebo)/launch/controller_utils.launch"/>
+  	<include if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/launch/controller_utils.launch"/>
+  	
+  	<!-- Load controllers to the parameters server -->
+ 	<rosparam if="$(eval robot=='ur5')" file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
+ 	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/controller/arm_controller_ur5e.yaml" command="load"/>
+  	<rosparam file="$(find robotiq_85_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
+ 	
+  	<!-- Spawn the controllers -->
+  	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller gripper"/>
+  	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
+
+  	<remap from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
+
+</launch>
