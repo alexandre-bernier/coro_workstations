@@ -5,3 +5,9 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
+catkin_install_python(PROGRAMS
+  scripts/test_move_robot.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(PROGRAMS scripts/copy_file.sh DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

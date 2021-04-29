@@ -1,7 +1,7 @@
 <!--
 Brief:	Launch file to start the workstation either in simulation (gazebo) or by connecting directly to the hardware.
 Author: Alexandre Bernier
-Date:	2021-04-09
+Date:	2021-04-29
 Email:	alexandre.bernier.3@ens.etsmtl.ca
 -->
 <launch>
@@ -15,6 +15,14 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<arg name="sim" default="true" if="$(eval (robot_ip=='no_ip'))"/>
   	<arg name="sim" value="false" unless="$(eval (robot_ip=='no_ip'))"/>
   	
+  	<!-- ************************************************************************* -->
+  	<!-- Copy the right ros_controllers.yaml file into the moveit_config directory -->
+  	<!-- ************************************************************************* -->
+  	<node if="$(arg sim)" name="copy_file" pkg="coro_workstations" type="copy_file.sh"
+  		args="$(find coro_workstations)/config/ur5_sim_ros_controllers.yaml $(find ur5_workstation_moveit_config)/config/ros_controllers.yaml"/>
+	<node unless="$(arg sim)" name="copy_file" pkg="coro_workstations" type="copy_file.sh"
+  		args="$(find coro_workstations)/config/ur5_hw_ros_controllers.yaml $(find ur5_workstation_moveit_config)/config/ros_controllers.yaml"/>
+  	
   	<!-- ******************************************* -->
   	<!-- If simulation, launch simulated workstation -->
   	<!-- ******************************************* -->
@@ -26,10 +34,10 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- Otherwise, connect to robot -->
   	<!-- *************************** -->
   	<include unless="$(arg sim)" file="$(find coro_workstations)/launch/hardware_workstation.launch">
-  		<!--<arg name="debug" value="$(arg debug)"/>-->
+  		<arg name="debug" value="$(arg debug)"/>
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 	</include>
-  	
+	
   	<!-- **************************** -->
   	<!-- Then, launch Moveit and Rviz -->
   	<!-- **************************** -->
@@ -46,4 +54,5 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   		<arg name="rviz_config" default="$(find ur5_workstation_moveit_config)/launch/moveit.rviz"/>
     		<arg name="debug" value="$(arg debug)"/>
 	</include>
+
 </launch>

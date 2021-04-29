@@ -28,5 +28,6 @@
   <run_depend>coro_descriptions</run_depend>
   <run_depend>ur5_workstation_moveit_config</run_depend>
 
+  <run_depend>rospy</run_depend>
 
 </package>

@@ -7,7 +7,8 @@
 		</material>
 	
 	        <!-- Base -->
-		<link name="${prefix}table_base">
+	        <link name="${prefix}table_base"/>
+		<link name="${prefix}table_base_link">
 			<visual>
 				<origin xyz="0 0 ${0.159/2}" rpy="0 0 0"/>
 				<geometry>
@@ -32,6 +33,11 @@
 	        <gazebo reference="${prefix}table_base">
     			<material>Gazebo/Grey</material>
   		</gazebo>
+  		<joint name="table_root" type="fixed">
+	        	<parent link="${prefix}table_base"/>
+	        	<child link="${prefix}table_base_link"/>
+	        	<origin xyz="0 0 0" rpy="0 0 0"/>
+        	</joint>
 	        
 	        <!-- Workspace column -->
 		<link name="${prefix}workspace_column">
@@ -60,7 +66,7 @@
     			<material>Gazebo/Grey</material>
   		</gazebo>
 	        <joint name="workspace_column_to_base" type="fixed">
-	        	<parent link="${prefix}table_base"/>
+	        	<parent link="${prefix}table_base_link"/>
 	        	<child link="${prefix}workspace_column"/>
 	        	<origin xyz="0 0.245 0.159" rpy="0 0 0"/>
         	</joint>
@@ -156,7 +162,7 @@
     			<material>Gazebo/Grey</material>
   		</gazebo>
 	        <joint name="robot_column_to_base" type="fixed">
-	        	<parent link="${prefix}table_base"/>
+	        	<parent link="${prefix}table_base_link"/>
 	        	<child link="${prefix}robot_column"/>
 	        	<origin xyz="0 -0.251 0.159" rpy="0 0 0"/>
         	</joint>

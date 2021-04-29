@@ -1,46 +1,48 @@
 <!--
 Brief:	Launch file to start a simulated workstation.
 Author: Alexandre Bernier
-Date:	2021-04-19
+Date:	2021-04-29
 Email:	alexandre.bernier.3@ens.etsmtl.ca
+Note: Taken from ur5_ros_control.launch in ur_modern_driver.
+      Velocity-based controller gives a much smoother robot mouvement than the position-based controller.
 -->
 <launch>
-	<arg name="robot_ip" doc="IP of the controller" />
-	<arg name="reverse_ip" default="" doc="IP of the computer running the driver" />
+	<!-- GDB functionality -->
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value=""/>
+	<arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args"/>
+
+	<arg name="robot_ip" doc="IP of the controller"/>
+	<arg name="reverse_ip" default="" doc="IP of the computer running the driver"/>
 	<arg name="reverse_port" default="50001"/>
-	<arg name="limited" default="false"/>
 	<arg name="min_payload"  default="0.0"/>
 	<arg name="max_payload"  default="5.0"/>
-	<arg name="prefix" default="" />
-	<arg name="use_lowbandwidth_trajectory_follower" default="false"/>
-	<arg name="time_interval" default="0.008"/>
-	<arg name="servoj_time" default="0.008" />
-	<arg name="servoj_time_waiting" default="0.001" />
-	<arg name="max_waiting_time" default="2.0" />
-	<arg name="servoj_gain" default="100." />
-	<arg name="servoj_lookahead_time" default="1." />
-	<arg name="max_joint_difference" default="0.01" />
-	<arg name="base_frame" default="$(arg prefix)base" />
-	<arg name="tool_frame" default="$(arg prefix)tool0_controller" />
-	<arg name="shutdown_on_disconnect" default="true" />
+	<arg name="prefix" default=""/>
+	<arg name="max_velocity" default="10.0"/> <!-- [rad/s] -->
+	<arg name="base_frame" default="$(arg prefix)base"/>
+	<arg name="tool_frame" default="$(arg prefix)tool0_controller"/>
+	<arg name="shutdown_on_disconnect" default="true"/>
+	<arg name="controllers" default="joint_state_controller force_torque_sensor_controller vel_based_pos_traj_controller"/>
+	<arg name="stopped_controllers" default="pos_based_pos_traj_controller joint_group_vel_controller"/>
 	
-	<!-- Robot model -->
-	<param name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'" />
+	<!-- robot model -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
 
 	<!-- Load hardware interface -->
 	<node name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="log" launch-prefix="$(arg launch_prefix)">
-	<param name="robot_ip_address" type="str" value="$(arg robot_ip)"/>
-	<param name="reverse_ip_address" type="str" value="$(arg reverse_ip)" />
-	<param name="reverse_port" type="int" value="$(arg reverse_port)" />
-	<param name="min_payload" type="double" value="$(arg min_payload)"/>
-	<param name="max_payload" type="double" value="$(arg max_payload)"/>
-	<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
-	<param name="use_ros_control" type="bool" value="true"/>
-	<param name="servoj_gain" type="double" value="750" />
-	<param name="prefix" value="$(arg prefix)" />
-	<param name="base_frame" type="str" value="$(arg base_frame)"/>
-	<param name="tool_frame" type="str" value="$(arg tool_frame)"/>
-	<param name="shutdown_on_disconnect" type="bool" value="$(arg shutdown_on_disconnect)"/>
+		<param name="robot_ip_address" type="str" value="$(arg robot_ip)"/>
+		<param name="reverse_ip_address" type="str" value="$(arg reverse_ip)"/>
+		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
+		<param name="min_payload" type="double" value="$(arg min_payload)"/>
+		<param name="max_payload" type="double" value="$(arg max_payload)"/>
+		<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
+		<param name="use_ros_control" type="bool" value="True"/>
+		<param name="servoj_gain" type="double" value="750"/>
+		<!--<param name="servoj_lookahead_time" type="double" value="2"/>-->
+		<param name="prefix" value="$(arg prefix)"/>
+		<param name="base_frame" type="str" value="$(arg base_frame)"/>
+		<param name="tool_frame" type="str" value="$(arg tool_frame)"/>
+		<param name="shutdown_on_disconnect" type="bool" value="$(arg shutdown_on_disconnect)"/>
 	</node>
 
 	<!-- Load controller settings -->
@@ -48,11 +50,11 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 
 	<!-- spawn controller manager -->
 	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	output="screen" args="$(arg controllers)" />
+		output="screen" args="$(arg controllers)"/>
 
 	<!-- load other controller -->
 	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-	output="screen" args="load $(arg stopped_controllers)" />
+		output="screen" args="load $(arg stopped_controllers)"/>
 
 	<!-- Convert joint states to /tf tranforms -->
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>

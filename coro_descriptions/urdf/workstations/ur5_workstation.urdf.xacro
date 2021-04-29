@@ -11,7 +11,7 @@
 		<child link="table_base"/>
 		<origin xyz="0 0 0" rpy="0 0 0"/>
 	</joint>
-	
+
 	<!-- ROBOT -->
 	<xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
 	<xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro"/>
@@ -56,9 +56,9 @@
     	
     	<link name="tcp"/>
     	<joint name="tcp_to_gripper" type="fixed">
-    		<parent link="gripper_base_link"/>
+    		<parent link="tool0"/>
     		<child link="tcp"/>
-    		<origin xyz="0 0 0.15" rpy="0 0 0"/>
+    		<origin xyz="0 0 0.19" rpy="0 0 0"/>
 	</joint>
 
 	<!-- GAZEBO -->
