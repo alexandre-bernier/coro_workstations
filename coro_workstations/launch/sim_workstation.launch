@@ -42,6 +42,6 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller gripper"/>
   	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
 
-  	<remap from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
+  	<remap from="/follow_joint_trajectory" to="/joint_group_position_controller/follow_joint_trajectory"/>
 
 </launch>

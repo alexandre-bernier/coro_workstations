@@ -38,6 +38,7 @@ class TestMoveRobot:
         # Move Group: gripper
         self.gripper_group_name = "gripper"
         self.gripper_move_group = moveit_commander.MoveGroupCommander(self.gripper_group_name)
+        self.gripper_move_group.set_pose_reference_frame("tool0")
 
         # Rviz trajectory visualization
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
@@ -47,8 +48,12 @@ class TestMoveRobot:
         # Basic information
         self.arm_planning_frame = self.arm_move_group.get_planning_frame()
         print("============ Arm planning frame: %s" % self.arm_planning_frame)
+        self.arm_pose_reference_frame = self.arm_move_group.get_pose_reference_frame()
+        print("============ Arm pose reference frame: %s" % self.arm_pose_reference_frame)
         self.gripper_planning_frame = self.gripper_move_group.get_planning_frame()
         print("============ Gripper planning frame: %s" % self.gripper_planning_frame)
+        self.gripper_pose_reference_frame = self.gripper_move_group.get_pose_reference_frame()
+        print("============ Gripper pose reference frame: %s" % self.gripper_pose_reference_frame)
         self.eef_link = self.arm_move_group.get_end_effector_link()
         print("============ End effector link: %s" % self.eef_link)
         self.group_names = self.robot.get_group_names()
@@ -57,14 +62,14 @@ class TestMoveRobot:
         print(self.robot.get_current_state())
         print("")
 
-    def plan_trajectory(self):
+    def plan_and_execute_trajectory(self):
         delta = 0.01
         waypoints = []
+        wpose = geometry_msgs.msg.PoseStamped()
+        wpose.header.frame_id = self.eef_link
 
         # Waypoint 1: X-
-        wpose = self.arm_move_group.get_current_pose().pose
-        print("Robot pose = %s" % wpose)
-        wpose.position.x -= delta
+        wpose.pose.position.x = delta
         waypoints.append(copy.deepcopy(wpose))
         # Waypoint 2: X+
         # wpose.position.x += 2*delta
@@ -85,14 +90,19 @@ class TestMoveRobot:
         # waypoints.append(copy.deepcopy(wpose))
 
         # Plan trajectory
-        (plan, fraction) = self.arm_move_group.compute_cartesian_path(waypoints, 0.01, 0)
-
-        return plan, fraction
+        self.arm_move_group.set_pose_target(wpose)
+        success, trajectory, planning_time, errors = self.arm_move_group.plan()
+        print("Planning success: %s" % success)
+        print("Trajectory: %s" % trajectory)
+        print("Planning time: %s" % planning_time)
+        print("Errors: %s" % errors)
+        if success:
+            self.arm_move_group.execute(trajectory)
+        self.arm_move_group.clear_pose_targets()
 
 
 if __name__ == '__main__':
     test = TestMoveRobot()
-    plan, fraction = test.plan_trajectory()
-    print("============ Planned trajectory fraction: %s" % fraction)
+    test.plan_and_execute_trajectory()
     print("")
     print("Done!")
