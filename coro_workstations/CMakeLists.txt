@@ -9,13 +9,16 @@ find_package(catkin REQUIRED
 	roscpp
 	moveit_core
     moveit_ros_planning
-    moveit_ros_planning_interface)
+    moveit_ros_planning_interface
+    moveit_visual_tools
+    rviz_visual_tools)
 
 catkin_package(
 	CATKIN_DEPENDS
 	roscpp
 	moveit_core
-	moveit_ros_planning_interface)
+	moveit_ros_planning_interface
+	moveit_visual_tools)
 	
 include_directories(${catkin_INCLUDE_DIRS})
 

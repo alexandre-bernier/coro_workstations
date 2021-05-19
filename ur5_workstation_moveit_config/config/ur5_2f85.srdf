@@ -41,10 +41,8 @@
     <group_state name="close" group="gripper">
         <joint name="gripper_finger1_joint" value="0.8"/>
     </group_state>
-    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="robotiq_2f_85" parent_link="tool0" group="gripper"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="world"/>
+    <virtual_joint name="virtual_joint" type="fixed" parent_frame="base_link" child_link="world"/>
     <!--PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated-->
     <passive_joint name="gripper_finger1_inner_knuckle_joint"/>
     <passive_joint name="gripper_finger1_finger_tip_joint"/>

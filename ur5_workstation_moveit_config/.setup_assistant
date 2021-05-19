@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Alexandre Bernier
     author_email: alexandre.bernier.3@ens.etsmtl.ca
-    generated_timestamp: 1620661227
+    generated_timestamp: 1621361311

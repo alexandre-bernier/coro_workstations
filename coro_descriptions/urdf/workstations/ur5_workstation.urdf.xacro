@@ -46,19 +46,19 @@
 	<xacro:include filename="$(find coro_descriptions)/urdf/common/2f_coupling.urdf.xacro"/>
 	<xacro:coupling_robotiq_2f prefix="" parent="ft300_sensor">
 		<origin xyz="0 0 -0.0045" rpy="0 0 0"/>
-    	</xacro:coupling_robotiq_2f>
+	</xacro:coupling_robotiq_2f>
    	
 	<!-- GRIPPER -->
 	<xacro:include filename="$(find robotiq_85_description)/urdf/robotiq_85_gripper.urdf.xacro"/>
 	<xacro:robotiq_85_gripper prefix="" parent="coupling_gripper_fix">
 		<origin xyz="0 0 0" rpy="0 1.5708 0"/>
-    	</xacro:robotiq_85_gripper>
+	</xacro:robotiq_85_gripper>
     	
-    	<link name="tcp"/>
-    	<joint name="tcp_to_gripper" type="fixed">
-    		<parent link="tool0"/>
-    		<child link="tcp"/>
-    		<origin xyz="0 0 0.19" rpy="0 0 0"/>
+	<link name="tcp"/>
+	<joint name="tcp_to_gripper" type="fixed">
+		<parent link="tool0"/>
+		<child link="tcp"/>
+		<origin xyz="0 0 0.19" rpy="0 0 0"/>
 	</joint>
 
 	<!-- GAZEBO -->
