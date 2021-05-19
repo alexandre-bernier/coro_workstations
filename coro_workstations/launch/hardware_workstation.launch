@@ -11,7 +11,10 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value=""/>
 	<arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args"/>
-
+	
+	<!-- ************************** -->
+	<!-- Load robot and controllers -->
+	<!-- ************************** -->
 	<arg name="robot_ip" doc="IP of the controller"/>
 	<arg name="reverse_ip" default="" doc="IP of the computer running the driver"/>
 	<arg name="reverse_port" default="50001"/>
@@ -25,7 +28,7 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="controllers" default="joint_state_controller force_torque_sensor_controller vel_based_pos_traj_controller"/>
 	<arg name="stopped_controllers" default="pos_based_pos_traj_controller joint_group_vel_controller"/>
 	
-	<!-- robot model -->
+	<!-- Robot model -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
 
 	<!-- Load hardware interface -->
@@ -58,4 +61,27 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 
 	<!-- Convert joint states to /tf tranforms -->
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+	
+	<!-- ******************* -->
+  	<!-- Then, launch Moveit -->
+  	<!-- ******************* -->
+  	<!-- Run the main MoveIt executable --> 
+  	<include file="$(find ur5_hw_workstation_moveit_config)/launch/move_group.launch">
+  		<arg name="publish_monitored_planning_scene" value="true"/>
+		<arg name="allow_trajectory_execution" value="true"/>
+		<arg name="fake_execution" value="false"/>
+		<arg name="pipeline" value="ompl"/>
+		<arg name="load_robot_description" value="true"/>
+		<arg name="info" value="true"/>
+		<arg name="debug" default="$(arg debug)"/>
+  	</include>
+  	
+  	<!-- ******** -->
+  	<!-- And Rviz -->
+  	<!-- ******** -->
+  	<!-- Run Rviz and load the default config to see the state of the move_group node -->
+  	<include file="$(find ur5_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur5_hw_workstation_moveit_config)/launch/moveit.rviz"/>
+		<arg name="debug" value="$(arg debug)"/>
+	</include>
 </launch>

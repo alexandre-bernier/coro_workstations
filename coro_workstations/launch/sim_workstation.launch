@@ -5,6 +5,11 @@ Date:	2021-04-19
 Email:	alexandre.bernier.3@ens.etsmtl.ca
 -->
 <launch>
+	<arg name="debug" default="false"/>
+	
+	<!-- ************************** -->
+	<!-- Load robot and controllers -->
+	<!-- ************************** -->
 	<!-- Robot selection -->
 	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
 
@@ -14,17 +19,17 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 	
 	<!-- Startup simulated world -->
 	<include file="$(find gazebo_ros)/launch/empty_world.launch">
-    		<arg name="world_name" default="worlds/empty.world"/>
-    		<arg name="paused" value="$(arg paused)"/>
-    		<arg name="gui" value="$(arg gazebo_gui)"/>
+		<arg name="world_name" default="worlds/empty.world"/>
+		<arg name="paused" value="$(arg paused)"/>
+		<arg name="gui" value="$(arg gazebo_gui)"/>
   	</include>
 
 	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  	<include if="$(eval robot=='ur5')" file="$(find ur5_workstation_moveit_config)/launch/planning_context.launch">
-    		<arg name="load_robot_description" value="false"/>
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_sim_workstation_moveit_config)/launch/planning_context.launch">
+		<arg name="load_robot_description" value="false"/>
   	</include>
   	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/planning_context.launch">
-    		<arg name="load_robot_description" value="false"/>
+		<arg name="load_robot_description" value="false"/>
   	</include>
   	
   	<!-- Push robot_description to factory and spawn robot in gazebo -->
@@ -43,5 +48,43 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
 
   	<remap from="/follow_joint_trajectory" to="/joint_group_position_controller/follow_joint_trajectory"/>
+  	
+  	<!-- ******************* -->
+  	<!-- Then, launch Moveit -->
+  	<!-- ******************* -->
+  	<!-- Run the main MoveIt executable --> 
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_sim_workstation_moveit_config)/launch/move_group.launch">
+  		<arg name="publish_monitored_planning_scene" value="true"/>
+		<arg name="allow_trajectory_execution" value="true"/>
+		<arg name="fake_execution" value="false"/>
+		<arg name="pipeline" value="ompl"/>
+		<arg name="load_robot_description" value="true"/>
+		<arg name="info" value="true"/>
+		<arg name="debug" default="$(arg debug)"/>
+  	</include>
+  	
+  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/move_group.launch">
+  		<arg name="publish_monitored_planning_scene" value="true"/>
+		<arg name="allow_trajectory_execution" value="true"/>
+		<arg name="fake_execution" value="false"/>
+		<arg name="pipeline" value="ompl"/>
+		<arg name="load_robot_description" value="true"/>
+		<arg name="info" value="true"/>
+		<arg name="debug" default="$(arg debug)"/>
+  	</include>
+  	
+  	<!-- ******** -->
+  	<!-- And Rviz -->
+  	<!-- ******** -->
+  	<!-- Run Rviz and load the default config to see the state of the move_group node -->
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_sim_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur5_sim_workstation_moveit_config)/launch/moveit.rviz"/>
+		<arg name="debug" value="$(arg debug)"/>
+	</include>
+	
+  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur5e_workstation_moveit_config)/launch/moveit.rviz"/>
+		<arg name="debug" value="$(arg debug)"/>
+	</include>
 
 </launch>
