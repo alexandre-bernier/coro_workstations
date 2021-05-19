@@ -5,8 +5,8 @@
   <description>
      Launch files to start any CoRo workstations
   </description>
-  <author email="alexandre.bernier.3@ens.etsmtl.ca">Alexandre Bernier</author>
-  <maintainer email="alexandre.bernier.3@ens.etsmtl.ca">Alexandre Bernier</maintainer>
+  <author email="ab.alexandre.bernier@gmail.com">Alexandre Bernier</author>
+  <maintainer email="ab.alexandre.bernier@gmail.com">Alexandre Bernier</maintainer>
 
   <license>BSD</license>
 
@@ -30,6 +30,7 @@
   <run_depend>xacro</run_depend>
   <run_depend>gazebo_ros</run_depend>
   <run_depend>coro_descriptions</run_depend>
-  <run_depend>ur5_workstation_moveit_config</run_depend>
+  <run_depend>ur5_sim_workstation_moveit_config</run_depend>
+  <run_depend>ur5_hw_workstation_moveit_config</run_depend>
 
 </package>
