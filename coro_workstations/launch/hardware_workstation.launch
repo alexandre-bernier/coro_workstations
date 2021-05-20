@@ -12,9 +12,9 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg unless="$(arg debug)" name="launch_prefix" value=""/>
 	<arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args"/>
 	
-	<!-- ************************** -->
-	<!-- Load robot and controllers -->
-	<!-- ************************** -->
+	<!-- ************* -->
+	<!-- Load UR robot -->
+	<!-- ************* -->
 	<arg name="robot_ip" doc="IP of the controller"/>
 	<arg name="reverse_ip" default="" doc="IP of the computer running the driver"/>
 	<arg name="reverse_port" default="50001"/>
@@ -58,8 +58,25 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<!-- load other controller -->
 	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
 		output="screen" args="load $(arg stopped_controllers)"/>
+		
+	<!-- ******************** -->
+	<!-- Load Robotiq gripper -->
+	<!-- ******************** -->
+	<arg name="comport" default="/dev/ttyUSB0"/>
+    <arg name="baud" default="115200"/>
+	        
+    <!-- Robotiq 85 ROS Driver -->
+    <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
+        <param name="num_grippers" value="1"/>
+        <param name="comport" value="$(arg comport)" />
+        <param name="baud" value="$(arg baud)" />
+    </node>
+    
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <rosparam param="source_list">[/gripper/joint_states]</rosparam>
+    </node>
 
-	<!-- Convert joint states to /tf tranforms -->
+	<!-- Robot state publisher -->
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 	
 	<!-- ******************* -->
