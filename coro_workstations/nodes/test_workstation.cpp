@@ -14,10 +14,20 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
+// Gripper states for the "gripper" function
+#define GRIPPER_OPEN (0u)
+#define GRIPPER_FULL_CLOSE (1u)
+#define GRIPPER_HALF_CLOSE (2u)
+
 // The name of the planning group can be found in the .srdf of the workstation's moveit_config directory
 // (The planning groups should be named "arm" for the robot and "gripper" for the end-effector)
 static const std::string ARM_PLANNING_GROUP = "arm";
+static const std::string GRIPPER_PLANNING_GROUP = "gripper";
 moveit::planning_interface::MoveGroupInterface *arm_move_group_interface;
+moveit::planning_interface::MoveGroupInterface *gripper_move_group_interface;
+
+std::string gripper_active_joint_name = "";
+double closed_gripper_joint_value = 0;
 
 // TF listener allows us to get transforms between any two frames in the urdf.
 tf2_ros::Buffer tfBuffer;
@@ -55,9 +65,33 @@ void move_relative_to_tcp(float x, float y, float z, float rx, float ry, float r
 	tf2::toMsg(tf_world_to_goal, world_to_goal);
 	
 	// Plan and execute the move
-// 	arm_move_group_interface->clearPoseTargets();
 	arm_move_group_interface->setPoseTarget(world_to_goal);
 	arm_move_group_interface->move();
+}
+
+void gripper(int req_state)
+{
+	bool target_set = false;
+	
+	switch(req_state) {
+		case GRIPPER_OPEN:
+			target_set = gripper_move_group_interface->setNamedTarget("open");	// One of the only two named targets specified in the srdf
+			ROS_INFO_NAMED("test_workstation", "Closing gripper...");
+			break;
+			
+		case GRIPPER_FULL_CLOSE:
+			target_set = gripper_move_group_interface->setNamedTarget("close");	// The other named target specified in the srdf
+			ROS_INFO_NAMED("test_workstation", "Opening gripper...");
+			break;
+			
+		case GRIPPER_HALF_CLOSE:
+			target_set = gripper_move_group_interface->setJointValueTarget(gripper_active_joint_name, 0.5*closed_gripper_joint_value);
+			ROS_INFO_NAMED("test_workstation", "Closing/Opening gripper to half...");
+			break;
+	}
+	
+	if(target_set)
+		gripper_move_group_interface->move();
 }
 
 int main(int argc, char** argv)
@@ -73,38 +107,54 @@ int main(int argc, char** argv)
 	
 	// Initialize global pointers
 	arm_move_group_interface = new moveit::planning_interface::MoveGroupInterface(ARM_PLANNING_GROUP);
+	gripper_move_group_interface = new moveit::planning_interface::MoveGroupInterface(GRIPPER_PLANNING_GROUP);
 	tfListener = new tf2_ros::TransformListener(tfBuffer);
 	
 	// Basic information
-	ROS_INFO_NAMED("test_workstation", "Planning frame: %s", arm_move_group_interface->getPlanningFrame().c_str());
-	ROS_INFO_NAMED("test_workstation", "Pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
-	ROS_INFO_NAMED("test_workstation", "End effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
+	ROS_INFO_NAMED("test_workstation", "Arm planning frame: %s", arm_move_group_interface->getPlanningFrame().c_str());
+	ROS_INFO_NAMED("test_workstation", "Arm pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
+	ROS_INFO_NAMED("test_workstation", "Arm end effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
+	ROS_INFO_NAMED("test_workstation", "Gripper planning frame: %s", gripper_move_group_interface->getPlanningFrame().c_str());
+	ROS_INFO_NAMED("test_workstation", "Gripper pose reference frame: %s", gripper_move_group_interface->getPoseReferenceFrame().c_str());
 	
-	// Move the TCP by giving an offset from the current position (using "tcp" axes)
-	// X
+	// Other useful variables
+	gripper_active_joint_name = gripper_move_group_interface->getActiveJoints().at(0);
+	closed_gripper_joint_value = gripper_move_group_interface->getNamedTargetValues("close").at(gripper_active_joint_name);
+	
+	// ------------------------------------------
+	// MOVE ROBOT
+	// Move the robot by giving a TCP's offset from the current position (using "tcp" axes)
 	move_relative_to_tcp(0.05, 0, 0, 0, 0, 0);
 	move_relative_to_tcp(-0.1, 0, 0, 0, 0, 0);
 	move_relative_to_tcp(0.05, 0, 0, 0, 0, 0);
-	//Y
+	
 	move_relative_to_tcp(0, 0.05, 0, 0, 0, 0);
 	move_relative_to_tcp(0, -0.1, 0, 0, 0, 0);
 	move_relative_to_tcp(0, 0.05, 0, 0, 0, 0);
-	// Z
+
 	move_relative_to_tcp(0, 0, 0.05, 0, 0, 0);
 	move_relative_to_tcp(0, 0, -0.1, 0, 0, 0);
 	move_relative_to_tcp(0, 0, 0.05, 0, 0, 0);
-	// Rx
+	
 	move_relative_to_tcp(0, 0, 0, M_PI/16, 0, 0);
 	move_relative_to_tcp(0, 0, 0, -M_PI/8, 0, 0);
 	move_relative_to_tcp(0, 0, 0, M_PI/16, 0, 0);
-	// Ry
+
 	move_relative_to_tcp(0, 0, 0, 0, M_PI/16, 0);
 	move_relative_to_tcp(0, 0, 0, 0, -M_PI/8, 0);
 	move_relative_to_tcp(0, 0, 0, 0, M_PI/16, 0);
-	// Rz
+
 	move_relative_to_tcp(0, 0, 0, 0, 0, M_PI/16);
 	move_relative_to_tcp(0, 0, 0, 0, 0, -M_PI/8);
 	move_relative_to_tcp(0, 0, 0, 0, 0, M_PI/16);
+	// ------------------------------------------
+	
+	// ------------------------------------------
+	// OPERATE GRIPPER
+	gripper(GRIPPER_HALF_CLOSE);
+	gripper(GRIPPER_FULL_CLOSE);
+	gripper(GRIPPER_OPEN);
+	// ------------------------------------------
 	
 	// Close the node and exit
 	ros::shutdown();
