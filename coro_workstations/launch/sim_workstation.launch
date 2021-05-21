@@ -7,15 +7,23 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 <launch>
 	<arg name="debug" default="false"/>
 	
-	<!-- ************************** -->
-	<!-- Load robot and controllers -->
-	<!-- ************************** -->
 	<!-- Robot selection -->
 	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
-
+	
+	<!-- Controllers -->
+	<arg name="controllers" default="joint_state_controller pos_joint_traj_controller gripper"/>
+	<arg name="stopped_controllers" default="joint_group_pos_controller"/>
+	
 	<!-- Gazebo specific options -->
 	<arg name="gazebo_gui" default="true"/>
 	<arg name="paused" default="false"/>
+	
+	<!-- ************************** -->
+	<!-- Load robot and controllers -->
+	<!-- ************************** -->
+	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+	<param if="$(eval robot=='ur5')" name="robot_description" command="xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
+  	<param if="$(eval robot=='ur5e')" name="robot_description" command="xacro '$(find coro_descriptions)/urdf/workstations/ur5e_workstation.urdf.xacro'"/>
 	
 	<!-- Startup simulated world -->
 	<include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -24,30 +32,22 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 		<arg name="gui" value="$(arg gazebo_gui)"/>
   	</include>
 
-	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  	<include if="$(eval robot=='ur5')" file="$(find ur5_sim_workstation_moveit_config)/launch/planning_context.launch">
-		<arg name="load_robot_description" value="false"/>
-  	</include>
-  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/planning_context.launch">
-		<arg name="load_robot_description" value="false"/>
-  	</include>
-  	
   	<!-- Push robot_description to factory and spawn robot in gazebo -->
   	<node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot)_workstation" respawn="false" output="screen"/>
-	
-  	<include if="$(eval robot=='ur5')" file="$(find ur_gazebo)/launch/controller_utils.launch"/>
-  	<include if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/launch/controller_utils.launch"/>
   	
-  	<!-- Load controllers to the parameters server -->
- 	<rosparam if="$(eval robot=='ur5')" file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
- 	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/controller/arm_controller_ur5e.yaml" command="load"/>
+  	<!-- Push controllers to the parameters server -->
+ 	<rosparam if="$(eval robot=='ur5')" file="$(find ur_gazebo)/config/ur5_controllers.yaml" command="load"/>
+ 	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/config/ur5e_controllers.yaml" command="load"/>
   	<rosparam file="$(find robotiq_85_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
- 	
+  	
   	<!-- Spawn the controllers -->
-  	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller gripper"/>
-  	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
+  	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers)"/>
 
-  	<remap from="/follow_joint_trajectory" to="/joint_group_position_controller/follow_joint_trajectory"/>
+	<!-- Load other controller -->
+	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load $(arg stopped_controllers)"/>
+	
+	<!-- Robot state publisher -->
+  	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
   	  	
   	<!-- ******************* -->
   	<!-- Then, launch Moveit -->
