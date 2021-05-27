@@ -52,12 +52,10 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<rosparam file="$(find ur_modern_driver)/config/ur5_controllers.yaml" command="load"/>
 
 	<!-- spawn controller manager -->
-	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-		output="screen" args="$(arg controllers)"/>
+	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"	output="screen" args="$(arg controllers)"/>
 
 	<!-- load other controller -->
-	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-		output="screen" args="load $(arg stopped_controllers)"/>
+	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load $(arg stopped_controllers)"/>
 		
 	<!-- ******************** -->
 	<!-- Load Robotiq gripper -->
@@ -71,13 +69,13 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
         <param name="comport" value="$(arg comport)" />
         <param name="baud" value="$(arg baud)" />
     </node>
-    
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <rosparam param="source_list">[/gripper/joint_states]</rosparam>
-    </node>
 
-	<!-- Robot state publisher -->
-	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+	<!-- *************************** -->
+	<!-- Start Robot_State_Publisher -->
+	<!-- *************************** -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
+        <param name="robot_description" value="robot_description"/>
+	</node>
 	
 	<!-- ******************* -->
   	<!-- Then, launch Moveit -->
