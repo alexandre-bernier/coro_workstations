@@ -42,8 +42,8 @@ void move_relative_to_tcp(float x, float y, float z, float rx, float ry, float r
 	// Current tcp pose
 	geometry_msgs::Pose arm_world_to_tcp = arm_move_group_interface->getCurrentPose().pose;
 	// *DEBUG*
-	ROS_INFO_NAMED("test_workstation", "Current tcp position: (%f : %f : %f)", arm_world_to_tcp.position.x, arm_world_to_tcp.position.y, arm_world_to_tcp.position.z);
-	ROS_INFO_NAMED("test_workstation", "Current tcp orientation: (%f : %f : %f)", arm_world_to_tcp.orientation.x, arm_world_to_tcp.orientation.y, arm_world_to_tcp.orientation.z);
+	ROS_INFO_NAMED("test_sim_workstation", "Current tcp position: (%f : %f : %f)", arm_world_to_tcp.position.x, arm_world_to_tcp.position.y, arm_world_to_tcp.position.z);
+	ROS_INFO_NAMED("test_sim_workstation", "Current tcp orientation: (%f : %f : %f)", arm_world_to_tcp.orientation.x, arm_world_to_tcp.orientation.y, arm_world_to_tcp.orientation.z);
 	
 	// Convert current pose to tf_pose
 	tf2::fromMsg(arm_world_to_tcp, tf_arm_world_to_tcp);
@@ -54,11 +54,11 @@ void move_relative_to_tcp(float x, float y, float z, float rx, float ry, float r
 	q.setRPY(rx,ry,rz);
 	tf_tcp_to_goal.setRotation(q);
 	// *DEBUG*
-	ROS_INFO_NAMED("test_workstation", "Goal tcp offset position: (%f : %f : %f)", tf_tcp_to_goal.getOrigin()[0], tf_tcp_to_goal.getOrigin()[1], tf_tcp_to_goal.getOrigin()[2]);
+	ROS_INFO_NAMED("test_sim_workstation", "Goal tcp offset position: (%f : %f : %f)", tf_tcp_to_goal.getOrigin()[0], tf_tcp_to_goal.getOrigin()[1], tf_tcp_to_goal.getOrigin()[2]);
 	tf2::Matrix3x3 m(q);
 	double roll, pitch, yaw;
 	m.getRPY(roll, pitch, yaw);
-	ROS_INFO_NAMED("test_workstation", "Goal tcp offset orientation: (%f : %f : %f)", roll, pitch, yaw);
+	ROS_INFO_NAMED("test_sim_workstation", "Goal tcp offset orientation: (%f : %f : %f)", roll, pitch, yaw);
 	
 	// Get the tf_pose world_to_goal and convert it back to geometry_msgs
 	tf_world_to_goal = tf_arm_world_to_tcp * tf_tcp_to_goal;
@@ -76,17 +76,17 @@ void gripper(int req_state)
 	switch(req_state) {
 		case GRIPPER_OPEN:
 			target_set = gripper_move_group_interface->setNamedTarget("open");	// One of the only two named targets specified in the srdf
-			ROS_INFO_NAMED("test_workstation", "Closing gripper...");
+			ROS_INFO_NAMED("test_sim_workstation", "Opening gripper...");
 			break;
 			
 		case GRIPPER_FULL_CLOSE:
 			target_set = gripper_move_group_interface->setNamedTarget("close");	// The other named target specified in the srdf
-			ROS_INFO_NAMED("test_workstation", "Opening gripper...");
+			ROS_INFO_NAMED("test_sim_workstation", "Closing gripper...");
 			break;
 			
 		case GRIPPER_HALF_CLOSE:
 			target_set = gripper_move_group_interface->setJointValueTarget(gripper_active_joint_name, 0.5*closed_gripper_joint_value);
-			ROS_INFO_NAMED("test_workstation", "Closing/Opening gripper to half...");
+			ROS_INFO_NAMED("test_sim_workstation", "Closing/Opening gripper to half...");
 			break;
 	}
 	
@@ -97,7 +97,7 @@ void gripper(int req_state)
 int main(int argc, char** argv)
 {
 	// ROS init
-	ros::init(argc, argv, "test_workstation");
+	ros::init(argc, argv, "test_sim_workstation");
 	ros::NodeHandle node_handle;
 	
 	// ROS spinning must be running for the MoveGroupInterface to get information
@@ -111,11 +111,11 @@ int main(int argc, char** argv)
 	tfListener = new tf2_ros::TransformListener(tfBuffer);
 	
 	// Basic information
-	ROS_INFO_NAMED("test_workstation", "Arm planning frame: %s", arm_move_group_interface->getPlanningFrame().c_str());
-	ROS_INFO_NAMED("test_workstation", "Arm pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
-	ROS_INFO_NAMED("test_workstation", "Arm end effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
-	ROS_INFO_NAMED("test_workstation", "Gripper planning frame: %s", gripper_move_group_interface->getPlanningFrame().c_str());
-	ROS_INFO_NAMED("test_workstation", "Gripper pose reference frame: %s", gripper_move_group_interface->getPoseReferenceFrame().c_str());
+	ROS_INFO_NAMED("test_sim_workstation", "Arm planning frame: %s", arm_move_group_interface->getPlanningFrame().c_str());
+	ROS_INFO_NAMED("test_sim_workstation", "Arm pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
+	ROS_INFO_NAMED("test_sim_workstation", "Arm end effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
+	ROS_INFO_NAMED("test_sim_workstation", "Gripper planning frame: %s", gripper_move_group_interface->getPlanningFrame().c_str());
+	ROS_INFO_NAMED("test_sim_workstation", "Gripper pose reference frame: %s", gripper_move_group_interface->getPoseReferenceFrame().c_str());
 	
 	// Other useful variables
 	gripper_active_joint_name = gripper_move_group_interface->getActiveJoints().at(0);
