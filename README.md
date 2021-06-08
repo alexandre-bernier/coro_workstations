@@ -6,7 +6,7 @@ This ROS package is meant as an easy way to use some of the robotics workstation
 
 The following workstations are available within this package:
 
-![UR5 Workstation](doc/ur5_workstation.png)
+<img src="doc/ur5_workstation.png" width="25%" height="25%">
 
 ### License
 
