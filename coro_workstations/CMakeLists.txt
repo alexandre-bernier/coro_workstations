@@ -8,9 +8,10 @@ find_package(catkin REQUIRED
 	COMPONENTS
 	roscpp
 	moveit_core
-    	moveit_ros_planning
-    	moveit_ros_planning_interface
-    	robotiq_85_msgs)
+	moveit_ros_planning
+	moveit_ros_planning_interface
+	robotiq_85_msgs
+	robotiq_ft_sensor)
 
 catkin_package(
 	CATKIN_DEPENDS

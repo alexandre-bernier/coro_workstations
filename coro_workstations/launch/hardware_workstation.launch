@@ -69,6 +69,13 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
         <param name="comport" value="$(arg comport)" />
         <param name="baud" value="$(arg baud)" />
     </node>
+    
+    <!-- ******************************** -->
+	<!-- Load Robotiq force-torque sensor -->
+	<!-- ******************************** -->
+	<node pkg="robotiq_ft_sensor" type="rq_sensor" name="rq_sensor" respawn="true" output="screen">
+		<param name="serial_id" value="ttyUSB1"/>
+	</node>
 
 	<!-- *************************** -->
 	<!-- Start Robot_State_Publisher -->

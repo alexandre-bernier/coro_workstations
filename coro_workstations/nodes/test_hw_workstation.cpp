@@ -15,6 +15,8 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <robotiq_85_msgs/GripperCmd.h>
 #include <robotiq_85_msgs/GripperStat.h>
+#include <robotiq_ft_sensor/ft_sensor.h>
+#include <robotiq_ft_sensor/sensor_accessor.h>
 
 // Gripper states for the "gripper" function
 #define GRIPPER_OPEN (0u)
@@ -34,10 +36,21 @@ static bool gripper_stat_received = false;
 ros::Publisher pub_gripper_cmd;
 static const std::string topic_gripper_cmd = "/gripper/cmd";
 
+// FT sensor
+ros::Subscriber sub_ft_sensor;
+ros::Subscriber sub_ft_wrench;
+static const std::string topic_ft_sensor = "/robotiq_ft_sensor";	// Custom message from the package "robotiq_ft_sensor"
+static const std::string topic_ft_wrench = "/robotiq_ft_wrench";	// Same information than "ft_sensor", but in a ROS standard message
+robotiq_ft_sensor::ft_sensor ft_sensor;
+geometry_msgs::WrenchStamped ft_wrench;
+ros::ServiceClient ft_service_client;
+static const std::string ft_service_accessor = "robotiq_ft_sensor_acc";
+
 // TF listener allows us to get transforms between any two frames in the urdf.
 tf2_ros::Buffer tfBuffer;
 tf2_ros::TransformListener *tfListener;
 
+// This function offsets the current pose of the TCP (and commands the robot to move)
 void move_relative_to_tcp(float x, float y, float z, float rx, float ry, float rz)
 {
 	// Variables
@@ -125,6 +138,28 @@ void gripper(int req_state)
 		ros::spinOnce();
 }
 
+// The force-torque sensor publishes 2 messages: 1 custom named "ft_sensor" and one from ROS geometry_msgs named "WrenchStamped"
+// Both messages contain the same sensor data. You should subscribe to only one of the two.
+// Here, we subscribed to both messages to show how to do it.
+void ft_sensor_callback(const robotiq_ft_sensor::ft_sensorConstPtr &ft)
+{
+	ft_sensor = *ft;
+	// *DEBUG*
+// 	ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Sensor:\n\tFx = %f\n\tFy = %f\n\tFz = %f\n\tMx = %f\n\tMy = %f\n\tMz = %f",
+// 		ft_sensor.Fx, ft_sensor.Fy, ft_sensor.Fz, ft_sensor.Mx, ft_sensor.My, ft_sensor.Mz);
+}
+
+// The force-torque sensor publishes 2 messages: 1 custom named "ft_sensor" and one from ROS geometry_msgs named "WrenchStamped"
+// Both messages contain the same sensor data. You should subscribe to only one of the two.
+// Here, we subscribed to both messages to show how to do it.
+void ft_wrench_callback(const geometry_msgs::WrenchStampedConstPtr &ft)
+{
+	ft_wrench = *ft;
+	// *DEBUG*
+// 	ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Wrench:\n\tFx = %f\n\tFy = %f\n\tFz = %f\n\tMx = %f\n\tMy = %f\n\tMz = %f",
+// 				   ft_wrench.wrench.force.x, ft_wrench.wrench.force.y, ft_wrench.wrench.force.z, ft_wrench.wrench.torque.x, ft_wrench.wrench.torque.y, ft_wrench.wrench.torque.z);
+}
+
 int main(int argc, char** argv)
 {
 	// ROS init
@@ -137,15 +172,29 @@ int main(int argc, char** argv)
 	spinner.start();
 	
 	// Initialize global pointers
+	// MoveIt
 	arm_move_group_interface = new moveit::planning_interface::MoveGroupInterface(ARM_PLANNING_GROUP);
+	// Gripper
 	sub_gripper_stat = node_handle.subscribe(topic_gripper_stat, 10, gripper_stat_callback);
 	pub_gripper_cmd = node_handle.advertise<robotiq_85_msgs::GripperCmd>(topic_gripper_cmd, 10);
+	// Force-Torque Sensor
+	sub_ft_sensor = node_handle.subscribe(topic_ft_sensor, 1000, ft_sensor_callback);
+	sub_ft_wrench = node_handle.subscribe(topic_ft_wrench, 1000, ft_wrench_callback);
+	ft_service_client = node_handle.serviceClient<robotiq_ft_sensor::sensor_accessor>(ft_service_accessor);
+	robotiq_ft_sensor::sensor_accessor ft_srv;
+	// TF
 	tfListener = new tf2_ros::TransformListener(tfBuffer);
 	
 	// Basic information
 	ROS_INFO_NAMED("test_hw_workstation", "Arm planning frame: %s", arm_move_group_interface->getPlanningFrame().c_str());
 	ROS_INFO_NAMED("test_hw_workstation", "Arm pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
 	ROS_INFO_NAMED("test_hw_workstation", "Arm end effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
+	
+	// Zero Force-Torque Sensor
+	// Make sure no forces are applied before zeroing the sensor
+	ft_srv.request.command_id = ft_srv.request.COMMAND_SET_ZERO;
+	ft_service_client.call(ft_srv);
+	ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Sensor zero request: %s", ft_srv.response.res.c_str());
 	
 	// Wait for first gripper state to come in
 	while(!gripper_stat_received)
