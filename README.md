@@ -107,14 +107,14 @@ You can use the source code of these nodes as a starting point to interact with 
 
 Makes sure the simulated workstation runs properly. This node:
 
-- makes the robot move a few centemeter from its current position in all axis using MoveIt;
+- makes the robot move a few centimeter from its current position in all axis using MoveIt;
 - closes and opens the gripper using MoveIt.
 
 ### test_hw_workstation
 
 Makes sure the hardware workstation runs properly. This node:
 
-- makes the robot move a few centemeter from its current position in all axis using MoveIt;
+- makes the robot move a few centimeter from its current position in all axis using MoveIt;
 - closes and opens the gripper using ROS topics;
 - subcribes to the force-torque sensor ROS topics.
 
