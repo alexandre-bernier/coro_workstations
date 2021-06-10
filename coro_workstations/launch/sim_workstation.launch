@@ -23,6 +23,7 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 	<!-- ************************** -->
 	<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
 	<param if="$(eval robot=='ur5')" name="robot_description" command="xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
+	<param if="$(eval robot=='ur10')" name="robot_description" command="xacro '$(find coro_descriptions)/urdf/workstations/ur10_workstation.urdf.xacro'"/>
   	<param if="$(eval robot=='ur5e')" name="robot_description" command="xacro '$(find coro_descriptions)/urdf/workstations/ur5e_workstation.urdf.xacro'"/>
 	
 	<!-- Startup simulated world -->
@@ -37,6 +38,7 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	
   	<!-- Push controllers to the parameters server -->
  	<rosparam if="$(eval robot=='ur5')" file="$(find ur_gazebo)/config/ur5_controllers.yaml" command="load"/>
+ 	<rosparam if="$(eval robot=='ur10')" file="$(find ur_gazebo)/config/ur10_controllers.yaml" command="load"/>
  	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/config/ur5e_controllers.yaml" command="load"/>
   	<rosparam file="$(find robotiq_85_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
   	
@@ -63,6 +65,16 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 		<arg name="debug" default="$(arg debug)"/>
   	</include>
   	
+  	<include if="$(eval robot=='ur10')" file="$(find ur10_sim_workstation_moveit_config)/launch/move_group.launch">
+  		<arg name="publish_monitored_planning_scene" value="true"/>
+		<arg name="allow_trajectory_execution" value="true"/>
+		<arg name="fake_execution" value="false"/>
+		<arg name="pipeline" value="ompl"/>
+		<arg name="load_robot_description" value="true"/>
+		<arg name="info" value="true"/>
+		<arg name="debug" default="$(arg debug)"/>
+  	</include>
+  	
   	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/move_group.launch">
   		<arg name="publish_monitored_planning_scene" value="true"/>
 		<arg name="allow_trajectory_execution" value="true"/>
@@ -79,6 +91,11 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- Run Rviz and load the default config to see the state of the move_group node -->
   	<include if="$(eval robot=='ur5')" file="$(find ur5_sim_workstation_moveit_config)/launch/moveit_rviz.launch">
   		<arg name="rviz_config" default="$(find ur5_sim_workstation_moveit_config)/launch/moveit.rviz"/>
+		<arg name="debug" value="$(arg debug)"/>
+	</include>
+	
+  	<include if="$(eval robot=='ur10')" file="$(find ur10_sim_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur10_sim_workstation_moveit_config)/launch/moveit.rviz"/>
 		<arg name="debug" value="$(arg debug)"/>
 	</include>
 	

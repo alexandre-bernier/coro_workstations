@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<robot name="ur10_2f85" xmlns:xacro="http://ros.org/wiki/xacro">
+	<!-- WORLD -->
+	<link name="world"/>
+
+	<!-- TABLE -->
+	<xacro:include filename="$(find coro_descriptions)/urdf/common/coro_large_vention_table.urdf.xacro"/>
+	<xacro:coro_large_vention_table prefix=""/>
+	<joint name="table_to_world" type="fixed">
+		<parent link="world"/>
+		<child link="table_base"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+
+	<!-- ROBOT -->
+	<xacro:include filename="$(find ur_description)/urdf/ur10.xacro"/>
+	<joint name="robot_to_table" type="fixed">
+		<parent link="robot_mount"/>
+		<child link="base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+
+	<!-- FORCE-TORQUE SENSOR -->
+	<xacro:include filename="$(find robotiq_ft_sensor)/urdf/robotiq_ft300.urdf.xacro"/>
+	<xacro:robotiq_ft300 prefix="" parent="tool0">
+		<origin xyz="0 0 -0.0045" rpy="0 0 0"/>
+	</xacro:robotiq_ft300>
+	<gazebo reference="ft300_sensor">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="ft300_mounting_plate">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	
+	<!-- GRIPPER COUPLING -->
+	<xacro:include filename="$(find coro_descriptions)/urdf/common/2f_coupling.urdf.xacro"/>
+	<xacro:coupling_robotiq_2f prefix="" parent="ft300_sensor">
+		<origin xyz="0 0 -0.0045" rpy="0 0 0"/>
+	</xacro:coupling_robotiq_2f>
+   	
+	<!-- GRIPPER -->
+	<xacro:include filename="$(find robotiq_85_description)/urdf/robotiq_85_gripper.urdf.xacro"/>
+	<xacro:robotiq_85_gripper prefix="" parent="coupling_gripper_fix">
+		<origin xyz="0 0 0" rpy="0 1.5708 0"/>
+	</xacro:robotiq_85_gripper>
+    	
+	<link name="tcp"/>
+	<joint name="tcp_to_gripper" type="fixed">
+		<parent link="tool0"/>
+		<child link="tcp"/>
+		<origin xyz="0 0 0.19" rpy="0 0 0"/>
+	</joint>
+
+	<!-- GAZEBO -->
+	<gazebo>
+    		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      			<robotNamespace>/</robotNamespace>
+      			<robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+    		</plugin>
+  	</gazebo>
+</robot>

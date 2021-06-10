@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<robot name="coro_large_vention_table" xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:macro name="coro_large_vention_table" params="prefix">
+
+	        <!-- Table -->
+		<link name="${prefix}table_base">
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+	                    		<mesh filename="package://coro_descriptions/meshes/large_vention_table.dae"/>
+	                	</geometry>
+			</visual>
+			<collision>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+	                    		<mesh filename="package://coro_descriptions/meshes/large_vention_table.dae"/>
+	                	</geometry>
+	            	</collision>
+	            	<inertial>
+	                	<origin xyz="0 0 0" rpy="0 0 0"/>
+	                	<mass value="30"/>
+	                	<inertia ixx="1" ixy="0" ixz="0"
+	                	  	 iyx="0" iyy="1" iyz="0"
+	                	  	 izx="0" izy="0" izz="1"/>
+	            	</inertial>
+	        </link>
+	        
+	        <!-- Robot mount -->
+	        <link name="${prefix}robot_mount"/>
+	        <joint name="robot_mount" type="fixed">
+	        	<parent link="${prefix}table_base"/>
+	        	<child link="${prefix}robot_mount"/>
+	        	<origin xyz="0.0074 0.3449 0.935" rpy="0 0 3.1416"/> <!-- Coordinates taken from a CAD assembly -->
+        	</joint>
+		
+	</xacro:macro>
+</robot>
