@@ -1,15 +1,21 @@
 <!--
 Brief:	Launch file to start the workstation either in simulation (gazebo) or by connecting directly to the hardware.
 Author: Alexandre Bernier
-Date:	2021-04-20
+Date:	2021-05-12
 Email:	alexandre.bernier.3@ens.etsmtl.ca
 -->
 <launch>
+	<!-- ********* -->
+  	<!-- Arguments -->
+  	<!-- ********* -->
 	<!-- By default, we are not in debug mode -->
 	<arg name="debug" default="false"/>
 	
-	<!-- IP address of the robot -->
+	<!-- Hardware addresses -->
+	<arg name="robot" default="ur5e"/>
 	<arg name="robot_ip" default="no_ip"/>
+	<arg name="gripper_comport" default="/dev/ttyUSB0"/>
+	<arg name="ft_comport" default="ttyUSB1"/>
 	
   	<!-- If you do not provide the ip address of the robot, the workstation will start in simulation by default -->
   	<arg name="sim" default="true" if="$(eval (robot_ip=='no_ip'))"/>
@@ -19,32 +25,19 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- If simulation, launch simulated workstation -->
   	<!-- ******************************************* -->
 	<include if="$(arg sim)" file="$(find coro_workstations)/launch/sim_workstation.launch">
-		<arg name="robot" value="ur5e"/>
+  		<arg name="debug" value="$(arg debug)"/>
+		<arg name="robot" value="$(arg robot)"/>
 	</include>
   	
-	<!-- *************************** -->
-  	<!-- Otherwise, connect to robot -->
-  	<!-- *************************** -->
+	<!-- ************************************** -->
+  	<!-- Otherwise, launch hardware workstation -->
+  	<!-- ************************************** -->
   	<include unless="$(arg sim)" file="$(find coro_workstations)/launch/hardware_workstation.launch">
-  		<!--<arg name="debug" value="$(arg debug)"/>-->
+  		<arg name="debug" value="$(arg debug)"/>
+		<arg name="robot" value="$(arg robot)"/>
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
-	</include>
-  	
-  	<!-- **************************** -->
-  	<!-- Then, launch Moveit and Rviz -->
-  	<!-- **************************** -->
-  	<!-- Run the main MoveIt executable --> 
-  	<include file="$(find ur5e_workstation_moveit_config)/launch/move_group.launch">
-    		<arg name="allow_trajectory_execution" value="true"/>
-    		<arg name="fake_execution" value="false"/>
-    		<arg name="info" value="true"/>
-    		<arg name="debug" default="$(arg debug)" />
-  	</include>
-  	
-  	<!-- Run Rviz and load the default config to see the state of the move_group node -->
-  	<include file="$(find ur5e_workstation_moveit_config)/launch/moveit_rviz.launch">
-  		<arg name="rviz_config" default="$(find ur5e_workstation_moveit_config)/launch/moveit.rviz"/>
-    		<arg name="debug" value="$(arg debug)"/>
+		<arg name="gripper_comport" value="$(arg gripper_comport)"/>
+		<arg name="ft_comport" value="$(arg ft_comport)"/>
 	</include>
 
 </launch>

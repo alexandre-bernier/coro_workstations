@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: coro_descriptions
+    relative_path: urdf/workstations/ur5e_workstation.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/ur5e_2f85.srdf
+  CONFIG:
+    author_name: Alexandre Bernier
+    author_email: alexandre.bernier.3@ens.etsmtl.ca
+    generated_timestamp: 1619555233

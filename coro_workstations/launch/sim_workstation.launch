@@ -8,7 +8,7 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 	<arg name="debug" default="false"/>
 	
 	<!-- Robot selection -->
-	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
+	<arg name="robot" default="ur5e" doc="Choose between: ur5, ur10, ur5e"/>
 	
 	<!-- Controllers -->
 	<arg name="controllers" default="joint_state_controller pos_joint_traj_controller gripper"/>

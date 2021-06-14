@@ -8,7 +8,7 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 -->
 <launch>
 	<!-- Robot selection -->
-	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
+	<arg name="robot" default="ur5e" doc="Choose between: ur5, ur10, ur5e"/>
 	
 	<!-- GDB functionality -->
 	<arg name="debug" default="false"/>
