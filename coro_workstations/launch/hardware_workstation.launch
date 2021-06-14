@@ -7,6 +7,9 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
       Velocity-based controller gives a much smoother robot mouvement than the position-based controller.
 -->
 <launch>
+	<!-- Robot selection -->
+	<arg name="robot" default="ur5" doc="Choose between: ur5, ur10, ur5e"/>
+	
 	<!-- GDB functionality -->
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value=""/>
@@ -19,7 +22,9 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="reverse_ip" default="" doc="IP of the computer running the driver"/>
 	<arg name="reverse_port" default="50001"/>
 	<arg name="min_payload"  default="0.0"/>
-	<arg name="max_payload"  default="5.0"/>
+	<arg if="$(eval robot=='ur5')" name="max_payload"  default="5.0"/>
+	<arg if="$(eval robot=='ur10')" name="max_payload"  default="10.0"/>
+	<arg if="$(eval robot=='ur5e')" name="max_payload"  default="5.0"/>
 	<arg name="prefix" default=""/>
 	<arg name="max_velocity" default="10.0"/> <!-- [rad/s] -->
 	<arg name="base_frame" default="$(arg prefix)base"/>
@@ -29,10 +34,11 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="stopped_controllers" default="pos_based_pos_traj_controller joint_group_vel_controller"/>
 	
 	<!-- Robot model -->
-	<param name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
+	<param if="$(eval robot=='ur5')" name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
+	<param if="$(eval robot=='ur10')" name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur10_workstation.urdf.xacro'"/>
 
 	<!-- Load hardware interface -->
-	<node name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="log" launch-prefix="$(arg launch_prefix)">
+	<node unless="$(eval robot=='ur5e')" name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="log" launch-prefix="$(arg launch_prefix)">
 		<param name="robot_ip_address" type="str" value="$(arg robot_ip)"/>
 		<param name="reverse_ip_address" type="str" value="$(arg reverse_ip)"/>
 		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
@@ -47,9 +53,10 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 		<param name="tool_frame" type="str" value="$(arg tool_frame)"/>
 		<param name="shutdown_on_disconnect" type="bool" value="$(arg shutdown_on_disconnect)"/>
 	</node>
-
+	
 	<!-- Load controller settings -->
-	<rosparam file="$(find ur_modern_driver)/config/ur5_controllers.yaml" command="load"/>
+	<rosparam if="$(eval robot=='ur5')" file="$(find ur_modern_driver)/config/ur5_controllers.yaml" command="load"/>
+	<rosparam if="$(eval robot=='ur10')" file="$(find ur_modern_driver)/config/ur10_controllers.yaml" command="load"/>
 
 	<!-- spawn controller manager -->
 	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"	output="screen" args="$(arg controllers)"/>
@@ -60,21 +67,22 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<!-- ******************** -->
 	<!-- Load Robotiq gripper -->
 	<!-- ******************** -->
-	<arg name="comport" default="/dev/ttyUSB0"/>
+	<arg name="gripper_comport" default="/dev/ttyUSB0"/>
     <arg name="baud" default="115200"/>
 	        
     <!-- Robotiq 85 ROS Driver -->
     <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
         <param name="num_grippers" value="1"/>
-        <param name="comport" value="$(arg comport)" />
+        <param name="comport" value="$(arg gripper_comport)" />
         <param name="baud" value="$(arg baud)" />
     </node>
     
     <!-- ******************************** -->
 	<!-- Load Robotiq force-torque sensor -->
 	<!-- ******************************** -->
+	<arg name="ft_comport" default="ttyUSB1"/>
 	<node pkg="robotiq_ft_sensor" type="rq_sensor" name="rq_sensor" respawn="true" output="screen">
-		<param name="serial_id" value="ttyUSB1"/>
+		<param name="serial_id" value="$(arg ft_comport)"/>
 	</node>
 
 	<!-- *************************** -->
@@ -88,7 +96,17 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
   	<!-- Then, launch Moveit -->
   	<!-- ******************* -->
   	<!-- Run the main MoveIt executable --> 
-  	<include file="$(find ur5_hw_workstation_moveit_config)/launch/move_group.launch">
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_hw_workstation_moveit_config)/launch/move_group.launch">
+  		<arg name="publish_monitored_planning_scene" value="true"/>
+		<arg name="allow_trajectory_execution" value="true"/>
+		<arg name="fake_execution" value="false"/>
+		<arg name="pipeline" value="ompl"/>
+		<arg name="load_robot_description" value="true"/>
+		<arg name="info" value="true"/>
+		<arg name="debug" default="$(arg debug)"/>
+  	</include>
+  	
+  	<include if="$(eval robot=='ur10')" file="$(find ur10_hw_workstation_moveit_config)/launch/move_group.launch">
   		<arg name="publish_monitored_planning_scene" value="true"/>
 		<arg name="allow_trajectory_execution" value="true"/>
 		<arg name="fake_execution" value="false"/>
@@ -102,7 +120,12 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
   	<!-- And Rviz -->
   	<!-- ******** -->
   	<!-- Run Rviz and load the default config to see the state of the move_group node -->
-  	<include file="$(find ur5_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
+  	<include if="$(eval robot=='ur5')" file="$(find ur5_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur5_hw_workstation_moveit_config)/launch/moveit.rviz"/>
+		<arg name="debug" value="$(arg debug)"/>
+	</include>
+	
+  	<include if="$(eval robot=='ur10')" file="$(find ur10_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
   		<arg name="rviz_config" default="$(find ur5_hw_workstation_moveit_config)/launch/moveit.rviz"/>
 		<arg name="debug" value="$(arg debug)"/>
 	</include>
