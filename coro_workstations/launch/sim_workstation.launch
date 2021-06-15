@@ -39,7 +39,7 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- Push controllers to the parameters server -->
  	<rosparam if="$(eval robot=='ur5')" file="$(find ur_gazebo)/config/ur5_controllers.yaml" command="load"/>
  	<rosparam if="$(eval robot=='ur10')" file="$(find ur_gazebo)/config/ur10_controllers.yaml" command="load"/>
- 	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_e_gazebo)/config/ur5e_controllers.yaml" command="load"/>
+ 	<rosparam if="$(eval robot=='ur5e')" file="$(find ur_gazebo)/config/ur5e_controllers.yaml" command="load"/>
   	<rosparam file="$(find robotiq_85_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
   	
   	<!-- Spawn the controllers -->
@@ -75,7 +75,7 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 		<arg name="debug" default="$(arg debug)"/>
   	</include>
   	
-  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/move_group.launch">
+  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_sim_workstation_moveit_config)/launch/move_group.launch">
   		<arg name="publish_monitored_planning_scene" value="true"/>
 		<arg name="allow_trajectory_execution" value="true"/>
 		<arg name="fake_execution" value="false"/>
@@ -99,8 +99,8 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 		<arg name="debug" value="$(arg debug)"/>
 	</include>
 	
-  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_workstation_moveit_config)/launch/moveit_rviz.launch">
-  		<arg name="rviz_config" default="$(find ur5e_workstation_moveit_config)/launch/moveit.rviz"/>
+  	<include if="$(eval robot=='ur5e')" file="$(find ur5e_sim_workstation_moveit_config)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(find ur5e_sim_workstation_moveit_config)/launch/moveit.rviz"/>
 		<arg name="debug" value="$(arg debug)"/>
 	</include>
 
