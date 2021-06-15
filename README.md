@@ -34,9 +34,9 @@ The following packages can be installed as Debian packages. See links for instal
 You will need to clone and build from source the following packages before trying to build coro_workstations (pay attention to the versions/branches indicated for each package):
 
 - [fmauch/universal_robot](https://github.com/fmauch/universal_robot.git) (calibration-devel branch)
-- [ros-industrial/ur_modern_driver](https://github.com/ros-industrial/ur_modern_driver.git) (kinetic-devel branch)
+- [alexandre-bernier/ur_modern_driver](https://github.com/alexandre-bernier/ur_modern_driver.git) (noetic-devel branch)
 - [ros-industrial/robotiq](https://github.com/ros-industrial/robotiq.git) (kinetic-devel branch)
-- [ros-industrial/ur_msgs](https://github.com/ros-industrial/ur_msgs.git) (version 1.3.0)
+- [ros-industrial/ur_msgs](https://github.com/ros-industrial/ur_msgs.git) (melodic branch)
 
 #### Building
 
