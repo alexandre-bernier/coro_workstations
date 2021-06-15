@@ -5,13 +5,13 @@
 	        <!-- Table -->
 		<link name="${prefix}table_base">
 			<visual>
-				<origin xyz="0 0 0.001" rpy="0 0 0"/> <!-- The Z-plane of the table is slightly too high. -->
+				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
 					<mesh filename="package://coro_descriptions/meshes/small_vention_table.dae"/>
 				</geometry>
 			</visual>
 			<collision>
-				<origin xyz="0 0 0.001" rpy="0 0 0"/> <!-- The Z-plane of the table is slightly too high. -->
+				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
 					<mesh filename="package://coro_descriptions/meshes/small_vention_table.dae"/>
 				</geometry>
@@ -30,7 +30,7 @@
 	        <joint name="robot_mount" type="fixed">
 	        	<parent link="${prefix}table_base"/>
 	        	<child link="${prefix}robot_mount"/>
-	        	<origin xyz="-0.3375 0 0.99234" rpy="0 0 0"/>  <!-- The Z-plane of the table is slightly too high. The true Z-origin is 0.099134. -->
+				<origin xyz="-0.0093 0.3375 0.99275" rpy="0 0 3.1416"/>  <!-- Coordinates taken from a CAD assembly -->
         	</joint>
 		
 	</xacro:macro>
