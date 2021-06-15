@@ -6,9 +6,9 @@ This ROS package is meant as an easy way to use some of the robotics workstation
 
 The following workstations are available within this package:
 
-| UR5 Workstation | UR10 Workstation |
-| --- | --- | 
-| <img src="doc/ur5_workstation.png" width="300px" height="300px"> | <img src="doc/ur10_workstation.png" width="300px" height="300px"> |
+| UR5 Workstation | UR10 Workstation | UR5e Workstation |
+| --- | --- | --- |
+| <img src="doc/ur5_workstation.png" width="300px" height="300px"> | <img src="doc/ur10_workstation.png" width="300px" height="300px"> | <img src="doc/ur5e_workstation.png" width="300px" height="300px"> |
 
 ### License
 
