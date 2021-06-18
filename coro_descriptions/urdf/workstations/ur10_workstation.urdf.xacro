@@ -1,5 +1,7 @@
 <?xml version="1.0" ?>
 <robot name="ur10_2f85" xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur10/default_kinematics.yaml"/>
+	
 	<!-- WORLD -->
 	<link name="world"/>
 
@@ -13,7 +15,8 @@
 	</joint>
 
 	<!-- ROBOT -->
-	<xacro:include filename="$(find ur_description)/urdf/ur10.xacro"/>
+	<xacro:include filename="$(find ur_description)/urdf/inc/ur10_macro.xacro"/>
+	<xacro:ur10_robot prefix="" kinematics_parameters_file="$(arg kinematics_config)"/>
 	<joint name="robot_to_table" type="fixed">
 		<parent link="robot_mount"/>
 		<child link="base_link"/>

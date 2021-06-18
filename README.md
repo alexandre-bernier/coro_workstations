@@ -37,6 +37,7 @@ You will need to clone and build from source the following packages before tryin
 - [alexandre-bernier/ur_modern_driver](https://github.com/alexandre-bernier/ur_modern_driver.git) (noetic-devel branch)
 - [ros-industrial/robotiq](https://github.com/ros-industrial/robotiq.git) (kinetic-devel branch)
 - [ros-industrial/ur_msgs](https://github.com/ros-industrial/ur_msgs.git) (melodic branch)
+- [UniversalRobots/Universal_Robots_ROS_Driver](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git) (master branch)
 
 #### Building
 
@@ -69,14 +70,14 @@ All workstations have been built using URDF files. All of which can be found in 
 - Robotiq FT300 force-torque sensor
 - 3 arms metal table (coro_workstations/coro_descriptions/urdf/common/coro_3arms_table.urdf.xacro)
 
-**ur10_workstation.urdf.xacro includes:** (coming soon...)
+**ur10_workstation.urdf.xacro includes:**
 
 - Universal Robot UR10 CB2
 - Robotiq 2F-85 gripper
 - Robotiq FT300 force-torque sensor
-- Large vention table (coro_workstations/coro_descriptions/urdf/common/coro_large_vention_table.urdf.xacro) (comming soon...)
+- Large vention table (coro_workstations/coro_descriptions/urdf/common/coro_large_vention_table.urdf.xacro)
 	
-**ur5e_workstation.urdf.xacro includes:** (coming soon...)
+**ur5e_workstation.urdf.xacro includes:**
 
 - Universal Robot UR5 eSeries
 - Robotiq 2F-85 gripper
@@ -94,16 +95,36 @@ All workstations have been built using URDF files. All of which can be found in 
 	Hardware workstation
 	
 	- **`robot_ip`** By provinding an IP address, the launch file will try to connect to the hardware and Gazebo won't be started. Default: `no_ip`.
+	- **`gripper_comport`** Complete path to the Gripper USB device. Default: `/dev/ttyUSB0`.
+	- **`ft_comport`** ID of the force-torque sensor USB device (complete path without `/dev/`). Default: `ttyUSB1`.
 
-* **ur10_workstation.launch:** coming soon...
+* **ur10_workstation.launch:**
 
-* **ur5e_workstation.launch:** coming soon...
+	Simulated workstation
+	
+	- **`robot_ip`** If this argument isn't provided, the workstation will launch in simulation. Default: `no_ip`.
+
+	Hardware workstation
+	
+	- **`robot_ip`** By provinding an IP address, the launch file will try to connect to the hardware and Gazebo won't be started. Default: `no_ip`.
+	- **`gripper_comport`** Complete path to the Gripper USB device. Default: `/dev/ttyUSB0`.
+	- **`ft_comport`** ID of the force-torque sensor USB device (complete path without `/dev/`). Default: `ttyUSB1`.
+
+* **ur5e_workstation.launch:**
+
+	Simulated workstation
+	
+	- **`robot_ip`** If this argument isn't provided, the workstation will launch in simulation. Default: `no_ip`.
+
+	Hardware workstation
+	
+	- **`robot_ip`** By provinding an IP address, the launch file will try to connect to the hardware and Gazebo won't be started. Default: `no_ip`.
 
 ## Nodes (coro_workstations/coro_workstations/nodes)
 
 You can use the source code of these nodes as a starting point to interact with the workstations. The only differences between the simulated and hardware workstations is the way to interact with the Robotiq 2f-85 gripper (no MoveIt support with the hardware version) and the absence of simulated data from the Robotiq FT300 force-torque sensor.
 
-**Before running any of these nodes with hardware workstations, make sure the robot is free to move a few centimeters from its current position.**
+**Before running any of these nodes with hardware workstations, make sure the robot is free to move a few centimeters from its current position in all directions.**
 
 ### test_sim_workstation
 
@@ -123,3 +144,4 @@ Makes sure the hardware workstation runs properly. This node:
 ## Bugs & Feature Requests
 
 Please report bugs and request features using the [Issue Tracker](https://github.com/alexandre-bernier/coro_workstations/issues).
+

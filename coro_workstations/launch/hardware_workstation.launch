@@ -7,8 +7,14 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
       Velocity-based controller gives a much smoother robot mouvement than the position-based controller.
 -->
 <launch>
-	<!-- Robot selection -->
+	<arg name="dollar" value="$"/>
+	
+	<!-- Robot -->
 	<arg name="robot" default="ur5e" doc="Choose between: ur5, ur10, ur5e"/>
+	<arg if="$(eval robot=='ur5')" name="cb2" value="1"/>
+	<arg if="$(eval robot=='ur10')" name="cb2" value="1"/>
+	<arg if="$(eval robot=='ur5e')" name="cb2" value="0"/>
+	<arg name="moveit_config_path" value="(find $(arg robot)_hw_workstation_moveit_config)"/>
 	
 	<!-- GDB functionality -->
 	<arg name="debug" default="false"/>
@@ -21,6 +27,9 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="robot_ip" doc="IP of the controller"/>
 	<arg name="reverse_ip" default="" doc="IP of the computer running the driver"/>
 	<arg name="reverse_port" default="50001"/>
+	<arg name="script_sender_port" default="50002" doc="The driver will offer an interface to receive the program's URScript on this port. If the robot cannot connect to this port, `External Control` will stop immediately."/>
+	<arg name="kinematics_config" doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description. Pass the same config file that is passed to the robot_description."/>
+	<arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
 	<arg name="min_payload"  default="0.0"/>
 	<arg if="$(eval robot=='ur5')" name="max_payload"  default="5.0"/>
 	<arg if="$(eval robot=='ur10')" name="max_payload"  default="10.0"/>
@@ -30,15 +39,31 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<arg name="base_frame" default="$(arg prefix)base"/>
 	<arg name="tool_frame" default="$(arg prefix)tool0_controller"/>
 	<arg name="shutdown_on_disconnect" default="true"/>
-	<arg name="controllers" default="joint_state_controller force_torque_sensor_controller vel_based_pos_traj_controller"/>
-	<arg name="stopped_controllers" default="pos_based_pos_traj_controller joint_group_vel_controller"/>
+	<arg if="$(arg cb2)" name="controllers" default="joint_state_controller force_torque_sensor_controller vel_based_pos_traj_controller"/>
+	<arg if="$(arg cb2)" name="stopped_controllers" default="pos_based_pos_traj_controller joint_group_vel_controller"/>
+	<arg unless="$(arg cb2)" name="controllers" default="joint_state_controller scaled_vel_joint_traj_controller speed_scaling_state_controller force_torque_sensor_controller robot_status_controller"/>
+	<arg unless="$(arg cb2)" name="stopped_controllers" default="vel_joint_traj_controller joint_group_vel_controller"/>
+	<arg name="use_tool_communication" default="true" doc="On e-Series robots tool communication can be enabled with this argument"/>
+	<arg name="urscript_file" default="$(find ur_robot_driver)/resources/ros_control.urscript" doc="Path to URScript that will be sent to the robot and that forms the main control program."/>
+	<arg name="rtde_output_recipe_file" default="$(find ur_robot_driver)/resources/rtde_output_recipe.txt" doc="Recipe file used for the RTDE-outputs. Only change this if you know what you're doing."/>
+	<arg name="rtde_input_recipe_file" default="$(find ur_robot_driver)/resources/rtde_input_recipe.txt" doc="Recipe file used for the RTDE-inputs. Only change this if you know what you're doing."/>
+	<arg name="tool_voltage" default="24" doc="Tool voltage set at the beginning of the UR program. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_parity" default="0" doc="Parity configuration used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_baud_rate" default="115200" doc="Baud rate used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_stop_bits" default="1" doc="Number of stop bits used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_rx_idle_chars" default="1.5" doc="Number of idle chars in RX channel used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_tx_idle_chars" default="3.5" doc="Number of idle chars in TX channel used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_device_name" default="/tmp/ttyUR" doc="Local device name used for tool communication. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="tool_tcp_port" default="54321" doc="Port on which the robot controller publishes the tool comm interface. Only used, when `use_tool_communication` is set to true."/>
+	<arg name="headless_mode" default="false" doc="Automatically send URScript to robot to execute. On e-Series this does require the robot to be in 'remote-control' mode. With this, the URCap is not needed on the robot."/>
+	<arg name="servoj_gain" default="2000" doc="Specify gain for servoing to position in joint space. A higher gain can sharpen the trajectory."/>
+	<arg name="servoj_lookahead_time" default="0.03" doc="Specify lookahead time for servoing to position in joint space. A longer lookahead time can smooth the trajectory."/>
 	
 	<!-- Robot model -->
-	<param if="$(eval robot=='ur5')" name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur5_workstation.urdf.xacro'"/>
-	<param if="$(eval robot=='ur10')" name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/ur10_workstation.urdf.xacro'"/>
+	<param name="robot_description" command="$(find xacro)/xacro '$(find coro_descriptions)/urdf/workstations/$(arg robot)_workstation.urdf.xacro'"/>
 
 	<!-- Load hardware interface -->
-	<node unless="$(eval robot=='ur5e')" name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="log" launch-prefix="$(arg launch_prefix)">
+	<node if="$(arg cb2)" name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="log" launch-prefix="$(arg launch_prefix)">
 		<param name="robot_ip_address" type="str" value="$(arg robot_ip)"/>
 		<param name="reverse_ip_address" type="str" value="$(arg reverse_ip)"/>
 		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
@@ -46,7 +71,7 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 		<param name="max_payload" type="double" value="$(arg max_payload)"/>
 		<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
 		<param name="use_ros_control" type="bool" value="True"/>
-		<param name="servoj_gain" type="double" value="750"/>
+		<param name="servoj_gain" type="double" value="$(arg servoj_gain)"/>
 		<!--<param name="servoj_lookahead_time" type="double" value="2"/>-->
 		<param name="prefix" value="$(arg prefix)"/>
 		<param name="base_frame" type="str" value="$(arg base_frame)"/>
@@ -54,36 +79,83 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 		<param name="shutdown_on_disconnect" type="bool" value="$(arg shutdown_on_disconnect)"/>
 	</node>
 	
+	<node unless="$(arg cb2)" name="ur_hardware_interface" pkg="ur_robot_driver" type="ur_robot_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
+		<param name="robot_ip" type="str" value="$(arg robot_ip)"/>
+		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
+		<param name="script_sender_port" type="int" value="$(arg script_sender_port)"/>
+		<rosparam command="load" file="$(arg kinematics_config)" />
+		<param name="script_file" value="$(arg urscript_file)"/>
+		<param name="output_recipe_file" value="$(arg rtde_output_recipe_file)"/>
+		<param name="input_recipe_file" value="$(arg rtde_input_recipe_file)"/>
+		<param name="headless_mode" value="$(arg headless_mode)"/>
+		<param name="tf_prefix" value="$(arg tf_prefix)"/>
+		<param name="use_tool_communication" value="$(arg use_tool_communication)"/>
+		<!--<param name="reverse_port" type="int" value="$(arg reverse_port)" />-->
+		<param name="tool_voltage" value="$(arg tool_voltage)"/>
+		<param name="tool_parity" value="$(arg tool_parity)"/>
+		<param name="tool_baud_rate" value="$(arg tool_baud_rate)"/>
+		<param name="tool_stop_bits" value="$(arg tool_stop_bits)"/>
+		<param name="tool_rx_idle_chars" value="$(arg tool_rx_idle_chars)"/>
+		<param name="tool_tx_idle_chars" value="$(arg tool_tx_idle_chars)"/>
+		<param name="servoj_gain" value="$(arg servoj_gain)"/>
+		<param name="servoj_lookahead_time" value="$(arg servoj_lookahead_time)"/>
+	</node>
+	
 	<!-- Load controller settings -->
-	<rosparam if="$(eval robot=='ur5')" file="$(find ur_modern_driver)/config/ur5_controllers.yaml" command="load"/>
-	<rosparam if="$(eval robot=='ur10')" file="$(find ur_modern_driver)/config/ur10_controllers.yaml" command="load"/>
+	<rosparam if="$(arg cb2)" file="$(find ur_modern_driver)/config/$(arg robot)_controllers.yaml" command="load"/>
+	<rosparam unless="$(arg cb2)" file="$(find ur_robot_driver)/config/$(arg robot)_controllers.yaml" command="load"/>
 
 	<!-- spawn controller manager -->
 	<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"	output="screen" args="$(arg controllers)"/>
 
 	<!-- load other controller -->
 	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load $(arg stopped_controllers)"/>
-		
-	<!-- ******************** -->
-	<!-- Load Robotiq gripper -->
-	<!-- ******************** -->
-	<arg name="gripper_comport" default="/dev/ttyUSB0"/>
-    <arg name="baud" default="115200"/>
+	
+	<node name="controller_stopper" pkg="controller_stopper" type="node" respawn="false" output="screen">
+		<remap from="robot_running" to="ur_hardware_interface/robot_program_running"/>
+		<rosparam param="consistent_controllers">
+- "joint_state_controller"
+- "speed_scaling_state_controller"
+- "force_torque_sensor_controller"
+- "robot_status_controller"</rosparam>
+	</node>
+
+  <!-- Make sure to start this in the namespace of the hardware interface -->
+  <node ns="ur_hardware_interface" name="ur_robot_state_helper" pkg="ur_robot_driver" type="robot_state_helper" respawn="false" output="screen"/>
+	
+	<!-- ************************************************* -->
+	<!-- Load tool communication bridge (CB3/eSeries only) -->
+	<!-- ************************************************* -->
+	<node if="$(arg use_tool_communication)" name="ur_tool_communication_bridge" pkg="ur_robot_driver" type="tool_communication" respawn="false" output="screen">
+		<param name="robot_ip" value="$(arg robot_ip)"/>
+		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
+		<param name="script_sender_port" type="int" value="$(arg script_sender_port)"/>
+		<param name="device_name" value="$(arg tool_device_name)"/>
+		<param name="tcp_port" value="$(arg tool_tcp_port)"/>
+	</node>
+	
+	<!-- ******************************* -->
+	<!-- Load Robotiq gripper (CB2 only) -->
+	<!-- ******************************* -->
+<!--	<arg if="$(arg cb2)" name="gripper_comport" default="/dev/ttyUSB0"/>
+    <arg if="$(arg cb2)" name="baud" default="115200"/>
+	<arg unless="$(arg cb2)" name="gripper_comport" default="$(arg tool_device_name)"/>
+    <arg unless="$(arg cb2)" name="baud" default="$(arg tool_baud_rate)"/>-->
 	        
     <!-- Robotiq 85 ROS Driver -->
-    <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
+<!--    <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
         <param name="num_grippers" value="1"/>
-        <param name="comport" value="$(arg gripper_comport)" />
+        <param name="comport" value="$(arg gripper_comport)"/>
         <param name="baud" value="$(arg baud)" />
-    </node>
+    </node>-->
     
-    <!-- ******************************** -->
-	<!-- Load Robotiq force-torque sensor -->
-	<!-- ******************************** -->
-	<arg name="ft_comport" default="ttyUSB1"/>
-	<node pkg="robotiq_ft_sensor" type="rq_sensor" name="rq_sensor" respawn="true" output="screen">
+    <!-- ******************************************* -->
+	<!-- Load Robotiq force-torque sensor (CB2 only) -->
+	<!-- ******************************************* -->
+<!--	<arg if="$(arg cb2)" name="ft_comport" default="ttyUSB1"/>
+	<node if="$(arg cb2)" pkg="robotiq_ft_sensor" type="rq_sensor" name="rq_sensor" respawn="true" output="screen">
 		<param name="serial_id" value="$(arg ft_comport)"/>
-	</node>
+	</node>-->
 
 	<!-- *************************** -->
 	<!-- Start Robot_State_Publisher -->
@@ -96,17 +168,7 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
   	<!-- Then, launch Moveit -->
   	<!-- ******************* -->
   	<!-- Run the main MoveIt executable --> 
-  	<include if="$(eval robot=='ur5')" file="$(find ur5_hw_workstation_moveit_config)/launch/move_group.launch">
-  		<arg name="publish_monitored_planning_scene" value="true"/>
-		<arg name="allow_trajectory_execution" value="true"/>
-		<arg name="fake_execution" value="false"/>
-		<arg name="pipeline" value="ompl"/>
-		<arg name="load_robot_description" value="true"/>
-		<arg name="info" value="true"/>
-		<arg name="debug" default="$(arg debug)"/>
-  	</include>
-  	
-  	<include if="$(eval robot=='ur10')" file="$(find ur10_hw_workstation_moveit_config)/launch/move_group.launch">
+  	<include file="$(arg dollar)$(arg moveit_config_path)/launch/move_group.launch">
   		<arg name="publish_monitored_planning_scene" value="true"/>
 		<arg name="allow_trajectory_execution" value="true"/>
 		<arg name="fake_execution" value="false"/>
@@ -120,13 +182,9 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
   	<!-- And Rviz -->
   	<!-- ******** -->
   	<!-- Run Rviz and load the default config to see the state of the move_group node -->
-  	<include if="$(eval robot=='ur5')" file="$(find ur5_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
-  		<arg name="rviz_config" default="$(find ur5_hw_workstation_moveit_config)/launch/moveit.rviz"/>
+  	<include file="$(arg dollar)$(arg moveit_config_path)/launch/moveit_rviz.launch">
+  		<arg name="rviz_config" default="$(arg dollar)$(arg moveit_config_path)/launch/moveit.rviz"/>
 		<arg name="debug" value="$(arg debug)"/>
 	</include>
 	
-  	<include if="$(eval robot=='ur10')" file="$(find ur10_hw_workstation_moveit_config)/launch/moveit_rviz.launch">
-  		<arg name="rviz_config" default="$(find ur5_hw_workstation_moveit_config)/launch/moveit.rviz"/>
-		<arg name="debug" value="$(arg debug)"/>
-	</include>
 </launch>

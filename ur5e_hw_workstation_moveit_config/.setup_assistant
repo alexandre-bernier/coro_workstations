@@ -7,5 +7,5 @@ moveit_setup_assistant_config:
     relative_path: config/ur5e_2f85.srdf
   CONFIG:
     author_name: Alexandre Bernier
-    author_email: alexandre.bernier.3@ens.etsmtl.ca
-    generated_timestamp: 1619555233
+    author_email: ab.alexandre.bernier@gmail.com
+    generated_timestamp: 1623872100

@@ -11,10 +11,12 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
 	<!-- By default, we are not in debug mode -->
 	<arg name="debug" default="false"/>
 	
-	<!-- Hardware addresses -->
+	<!-- Hardware -->
+	<arg name="robot" value="ur10"/>
 	<arg name="robot_ip" default="no_ip"/>
 	<arg name="gripper_comport" default="/dev/ttyUSB0"/>
 	<arg name="ft_comport" default="ttyUSB1"/>
+	<arg name="kinematics_config" default="$(find ur_description)/config/ur10/default_kinematics.yaml" doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description. Pass the same config file that is passed to the robot_description."/>
 	
   	<!-- If you do not provide the ip address of the robot, the workstation will start in simulation by default -->
   	<arg name="sim" default="true" if="$(eval (robot_ip=='no_ip'))"/>
@@ -25,7 +27,8 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- ******************************************* -->
 	<include if="$(arg sim)" file="$(find coro_workstations)/launch/sim_workstation.launch">
   		<arg name="debug" value="$(arg debug)"/>
-		<arg name="robot" value="ur10"/>
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="kinematics_config" value="$(arg kinematics_config)"/>
 	</include>
   	
 	<!-- ************************************** -->
@@ -33,8 +36,9 @@ Email:	alexandre.bernier.3@ens.etsmtl.ca
   	<!-- ************************************** -->
   	<include unless="$(arg sim)" file="$(find coro_workstations)/launch/hardware_workstation.launch">
   		<arg name="debug" value="$(arg debug)"/>
-		<arg name="robot" value="ur10"/>
+		<arg name="robot" value="$(arg robot)"/>
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
+		<arg name="kinematics_config" value="$(arg kinematics_config)"/>
 		<arg name="gripper_comport" value="$(arg gripper_comport)"/>
 		<arg name="ft_comport" value="$(arg ft_comport)"/>
 	</include>
