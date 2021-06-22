@@ -111,7 +111,7 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	<!-- load other controller -->
 	<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load $(arg stopped_controllers)"/>
 	
-	<node name="controller_stopper" pkg="controller_stopper" type="node" respawn="false" output="screen">
+	<node unless="$(arg cb2)" name="controller_stopper" pkg="controller_stopper" type="node" respawn="false" output="screen">
 		<remap from="robot_running" to="ur_hardware_interface/robot_program_running"/>
 		<rosparam param="consistent_controllers">
 - "joint_state_controller"
@@ -121,12 +121,12 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 	</node>
 
   <!-- Make sure to start this in the namespace of the hardware interface -->
-  <node ns="ur_hardware_interface" name="ur_robot_state_helper" pkg="ur_robot_driver" type="robot_state_helper" respawn="false" output="screen"/>
+  <node unless="$(arg cb2)" ns="ur_hardware_interface" name="ur_robot_state_helper" pkg="ur_robot_driver" type="robot_state_helper" respawn="false" output="screen"/>
 	
 	<!-- ************************************************* -->
 	<!-- Load tool communication bridge (CB3/eSeries only) -->
 	<!-- ************************************************* -->
-	<node if="$(arg use_tool_communication)" name="ur_tool_communication_bridge" pkg="ur_robot_driver" type="tool_communication" respawn="false" output="screen">
+	<node unless="$(arg cb2)" name="ur_tool_communication_bridge" pkg="ur_robot_driver" type="tool_communication" respawn="false" output="screen">
 		<param name="robot_ip" value="$(arg robot_ip)"/>
 		<param name="reverse_port" type="int" value="$(arg reverse_port)"/>
 		<param name="script_sender_port" type="int" value="$(arg script_sender_port)"/>
@@ -134,28 +134,28 @@ Note: Taken from ur5_ros_control.launch in ur_modern_driver.
 		<param name="tcp_port" value="$(arg tool_tcp_port)"/>
 	</node>
 	
-	<!-- ******************************* -->
-	<!-- Load Robotiq gripper (CB2 only) -->
-	<!-- ******************************* -->
-<!--	<arg if="$(arg cb2)" name="gripper_comport" default="/dev/ttyUSB0"/>
+	<!-- ******************** -->
+	<!-- Load Robotiq gripper -->
+	<!-- ******************** -->
+	<arg if="$(arg cb2)" name="gripper_comport" default="/dev/ttyUSB0"/>
     <arg if="$(arg cb2)" name="baud" default="115200"/>
 	<arg unless="$(arg cb2)" name="gripper_comport" default="$(arg tool_device_name)"/>
-    <arg unless="$(arg cb2)" name="baud" default="$(arg tool_baud_rate)"/>-->
+    <arg unless="$(arg cb2)" name="baud" default="$(arg tool_baud_rate)"/>
 	        
     <!-- Robotiq 85 ROS Driver -->
-<!--    <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
+    <node if="$(arg cb2)" pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
         <param name="num_grippers" value="1"/>
         <param name="comport" value="$(arg gripper_comport)"/>
         <param name="baud" value="$(arg baud)" />
-    </node>-->
+    </node>
     
     <!-- ******************************************* -->
 	<!-- Load Robotiq force-torque sensor (CB2 only) -->
 	<!-- ******************************************* -->
-<!--	<arg if="$(arg cb2)" name="ft_comport" default="ttyUSB1"/>
+	<arg if="$(arg cb2)" name="ft_comport" default="ttyUSB1"/>
 	<node if="$(arg cb2)" pkg="robotiq_ft_sensor" type="rq_sensor" name="rq_sensor" respawn="true" output="screen">
 		<param name="serial_id" value="$(arg ft_comport)"/>
-	</node>-->
+	</node>
 
 	<!-- *************************** -->
 	<!-- Start Robot_State_Publisher -->

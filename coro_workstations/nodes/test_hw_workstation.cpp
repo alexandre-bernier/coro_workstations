@@ -36,15 +36,18 @@ static bool gripper_stat_received = false;
 ros::Publisher pub_gripper_cmd;
 static const std::string topic_gripper_cmd = "/gripper/cmd";
 
-// FT sensor
-ros::Subscriber sub_ft_sensor;
-ros::Subscriber sub_ft_wrench;
-static const std::string topic_ft_sensor = "/robotiq_ft_sensor";	// Custom message from the package "robotiq_ft_sensor"
-static const std::string topic_ft_wrench = "/robotiq_ft_wrench";	// Same information than "ft_sensor", but in a ROS standard message
-robotiq_ft_sensor::ft_sensor ft_sensor;
-geometry_msgs::WrenchStamped ft_wrench;
-ros::ServiceClient ft_service_client;
-static const std::string ft_service_accessor = "robotiq_ft_sensor_acc";
+// FT sensor (CB2 and CB3+eSeries have different topics and work in different ways)
+ros::Subscriber sub_ft_sensor; 	// CB2 only
+ros::Subscriber sub_ft_wrench; 	// CB2 only
+ros::Subscriber sub_wrench; 	// CB3+eSeries only
+static const std::string topic_ft_sensor = "/robotiq_ft_sensor";	// CB2 only: Custom message from the package "robotiq_ft_sensor"
+static const std::string topic_ft_wrench = "/robotiq_ft_wrench";	// CB2 only: Same information than "ft_sensor", but in a ROS standard message
+static const std::string topic_wrench = "/wrench";					// CB3+eSeries only: FT sensor data in a ROS standard message
+robotiq_ft_sensor::ft_sensor ft_sensor; 	// CB2 only
+geometry_msgs::WrenchStamped ft_wrench; 	// CB2 only
+geometry_msgs::WrenchStamped wrench; 		// CB3+eSeries only
+ros::ServiceClient ft_service_client; 		// CB2 only
+static const std::string ft_service_accessor = "robotiq_ft_sensor_acc"; 	// CB2 only
 
 // TF listener allows us to get transforms between any two frames in the urdf.
 tf2_ros::Buffer tfBuffer;
@@ -138,6 +141,7 @@ void gripper(int req_state)
 		ros::spinOnce();
 }
 
+// *** CB2 only ***
 // The force-torque sensor publishes 2 messages: 1 custom named "ft_sensor" and one from ROS geometry_msgs named "WrenchStamped"
 // Both messages contain the same sensor data. You should subscribe to only one of the two.
 // Here, we subscribed to both messages to show how to do it.
@@ -149,6 +153,7 @@ void ft_sensor_callback(const robotiq_ft_sensor::ft_sensorConstPtr &ft)
 // 		ft_sensor.Fx, ft_sensor.Fy, ft_sensor.Fz, ft_sensor.Mx, ft_sensor.My, ft_sensor.Mz);
 }
 
+// *** CB2 only ***
 // The force-torque sensor publishes 2 messages: 1 custom named "ft_sensor" and one from ROS geometry_msgs named "WrenchStamped"
 // Both messages contain the same sensor data. You should subscribe to only one of the two.
 // Here, we subscribed to both messages to show how to do it.
@@ -158,6 +163,18 @@ void ft_wrench_callback(const geometry_msgs::WrenchStampedConstPtr &ft)
 	// *DEBUG*
 // 	ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Wrench:\n\tFx = %f\n\tFy = %f\n\tFz = %f\n\tMx = %f\n\tMy = %f\n\tMz = %f",
 // 				   ft_wrench.wrench.force.x, ft_wrench.wrench.force.y, ft_wrench.wrench.force.z, ft_wrench.wrench.torque.x, ft_wrench.wrench.torque.y, ft_wrench.wrench.torque.z);
+}
+
+// *** CB3+eSeries only ***
+// The force-torque sensor data is published by the hardware_interface node under the topic "/wrench".
+// The force-torque sensor will zero itself once at the launch of the workstation (launch file).
+// You can't request the force-torque sensor to zero itself afterwards. You'll have to do it programmically if you need to.
+void wrench_callback(const geometry_msgs::WrenchStampedConstPtr &ft)
+{
+	wrench = *ft;
+	// *DEBUG*
+// 		ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Wrench:\n\tFx = %f\n\tFy = %f\n\tFz = %f\n\tMx = %f\n\tMy = %f\n\tMz = %f",
+// 					   wrench.wrench.force.x, wrench.wrench.force.y, wrench.wrench.force.z, wrench.wrench.torque.x, wrench.wrench.torque.y, wrench.wrench.torque.z);
 }
 
 int main(int argc, char** argv)
@@ -178,10 +195,11 @@ int main(int argc, char** argv)
 	sub_gripper_stat = node_handle.subscribe(topic_gripper_stat, 10, gripper_stat_callback);
 	pub_gripper_cmd = node_handle.advertise<robotiq_85_msgs::GripperCmd>(topic_gripper_cmd, 10);
 	// Force-Torque Sensor
-	sub_ft_sensor = node_handle.subscribe(topic_ft_sensor, 1000, ft_sensor_callback);
-	sub_ft_wrench = node_handle.subscribe(topic_ft_wrench, 1000, ft_wrench_callback);
-	ft_service_client = node_handle.serviceClient<robotiq_ft_sensor::sensor_accessor>(ft_service_accessor);
-	robotiq_ft_sensor::sensor_accessor ft_srv;
+	sub_ft_sensor = node_handle.subscribe(topic_ft_sensor, 1000, ft_sensor_callback); 	// CB2 only
+	sub_ft_wrench = node_handle.subscribe(topic_ft_wrench, 1000, ft_wrench_callback); 	// CB2 only
+	sub_wrench = node_handle.subscribe(topic_wrench, 1000, wrench_callback); 			// CB3+eSeries only
+	ft_service_client = node_handle.serviceClient<robotiq_ft_sensor::sensor_accessor>(ft_service_accessor); 	// CB2 only
+	robotiq_ft_sensor::sensor_accessor ft_srv; 	// CB2 only
 	// TF
 	tfListener = new tf2_ros::TransformListener(tfBuffer);
 	
@@ -190,11 +208,14 @@ int main(int argc, char** argv)
 	ROS_INFO_NAMED("test_hw_workstation", "Arm pose reference frame: %s", arm_move_group_interface->getPoseReferenceFrame().c_str());
 	ROS_INFO_NAMED("test_hw_workstation", "Arm end effector link: %s", arm_move_group_interface->getEndEffectorLink().c_str());
 	
+	// ------------------------------------------
+	// CB2 only
 	// Zero Force-Torque Sensor
 	// Make sure no forces are applied before zeroing the sensor
 	ft_srv.request.command_id = ft_srv.request.COMMAND_SET_ZERO;
 	ft_service_client.call(ft_srv);
 	ROS_INFO_NAMED("test_hw_workstation", "Force-Torque Sensor zero request: %s", ft_srv.response.res.c_str());
+	// ------------------------------------------
 	
 	// Wait for first gripper state to come in
 	while(!gripper_stat_received)

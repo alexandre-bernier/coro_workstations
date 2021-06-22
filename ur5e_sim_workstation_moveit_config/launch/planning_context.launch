@@ -9,7 +9,7 @@
   <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="xacro  '$(find coro_descriptions)/urdf/workstations/ur5e_workstation.urdf.xacro'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="$(arg robot_description)_semantic" textfile="$(find ur5e_sim_workstation_moveit_config)/config/ur5_2f85.srdf" />
+  <param name="$(arg robot_description)_semantic" textfile="$(find ur5e_sim_workstation_moveit_config)/config/ur5e_2f85.srdf" />
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">

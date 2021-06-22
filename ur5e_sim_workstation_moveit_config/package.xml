@@ -3,7 +3,7 @@
   <name>ur5e_sim_workstation_moveit_config</name>
   <version>0.3.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the ur5_2f85 with the MoveIt Motion Planning Framework
+     An automatically generated package with all the configuration and launch files for using the ur5e_2f85 with the MoveIt Motion Planning Framework
   </description>
   <author email="ab.alexandre.bernier@gmail.com">Alexandre Bernier</author>
   <maintainer email="ab.alexandre.bernier@gmail.com">Alexandre Bernier</maintainer>

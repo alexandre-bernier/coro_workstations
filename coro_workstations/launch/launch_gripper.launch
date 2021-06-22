@@ -1,16 +1,12 @@
 <launch>
-<!--	<node name="ur_tool_communication_bridge" pkg="ur_robot_driver" type="tool_communication" respawn="false" output="screen">
-		<param name="robot_ip" value="192.168.1.112"/>
-		<param name="reverse_port" type="int" value="50001"/>
-		<param name="script_sender_port" type="int" value="50002"/>
-		<param name="device_name" value="/tmp/ttyUR"/>
-		<param name="tcp_port" value="54321"/>
-	</node>-->
-	
+	<arg name="num_grippers" default="1"/>
+	<arg name="comport" default="/tmp/ttyUR"/>
+	<arg name="baudrate" default="115200"/>
+
     <!-- Robotiq 85 ROS Driver -->
     <node pkg="robotiq_85_driver" type="robotiq_85_driver" name="robotiq_85_driver" respawn="true" output="screen">
-        <param name="num_grippers" value="1"/>
-        <param name="comport" value="/tmp/ttyUR"/>
-        <param name="baud" value="115200" />
+        <param name="num_grippers" value="$(arg num_grippers)"/>
+        <param name="comport" value="$(arg comport)"/>
+        <param name="baud" value="$(arg baudrate)" />
     </node>
 </launch>
