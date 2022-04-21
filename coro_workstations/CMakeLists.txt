@@ -27,4 +27,5 @@ install(TARGETS test_sim_workstation DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATIO
 
 add_executable(test_hw_workstation nodes/test_hw_workstation.cpp)
 target_link_libraries(test_hw_workstation ${catkin_LIBRARIES})
+add_dependencies(test_hw_workstation robotiq_85_msgs_generate_messages_cpp)
 install(TARGETS test_hw_workstation DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
